@@ -1,1 +1,224 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Malupets Dashboard</title><link rel="stylesheet" href="css/styles.css"></head><body><div class="app"><aside class="sidebar"><div class="brand"><span class="malu">Malu</span><span class="dog-dot">🐶</span><span class="pets">Pets</span></div><nav class="nav"><a class="active" href="dashboard.html">Dashboard</a><a href="pos.html">POS - Facturación</a><a href="clientes.html">Clientes</a><a href="mascotas.html">Mascotas</a><a href="inventario.html">Inventario</a><a href="agenda.html">Agenda</a><a href="caja.html">Caja</a><a href="reportes.html">Reportes</a><a href="configuracion.html">Configuración</a></nav></aside><main class="main"><div class="topbar"><div class="title"><h1>¡Bienvenido, Administrador! 👋</h1><p>Resumen general de Malupets.</p></div><button class="btn btn-blue">Nueva venta</button></div><section class="grid stats"><div class="card stat"><div class="label">Ventas del día</div><div class="value">$ 0</div></div><div class="card stat"><div class="label">Citas de hoy</div><div class="value">0</div></div><div class="card stat"><div class="label">Clientes activos</div><div class="value" id="clientesCount">...</div></div><div class="card stat"><div class="label">Mascotas</div><div class="value" id="petsCount">...</div></div></section><br><section class="card hero"><div><span class="pill">Pet friendly + profesional</span><h2>En Malupets cuidamos a quienes llenan tu vida de amor 💙</h2><p>Sistema listo para crecer: POS, inventario, agenda, clientes y mascotas.</p><div class="actions"><a class="btn btn-blue" href="clientes.html">Crear cliente</a><a class="btn btn-yellow" href="agenda.html">Nueva cita</a></div></div><div style="font-size:110px">🐶🐱</div></section></main></div><script src="js/config.js"></script><script src="js/app.js"></script><script>Promise.all([Malu.api('/api/customers'),Malu.api('/api/pets')]).then(([c,p])=>{clientesCount.textContent=c.length;petsCount.textContent=p.length}).catch(()=>{clientesCount.textContent='0';petsCount.textContent='0'});</script></body></html>
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Malupets | Dashboard</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <a class="brand" href="dashboard.html" aria-label="Malupets">
+        <span class="malu">Malu</span><span class="dog-dot">🐶</span><span class="pets">Pets</span>
+      </a>
+      <nav class="nav">
+        <a class="active" href="dashboard.html">🏠 Dashboard</a>
+        <a href="pos.html">🧾 POS - Facturación</a>
+        <a href="clientes.html">👤 Clientes</a>
+        <a href="mascotas.html">🐾 Mascotas</a>
+        <a href="inventario.html">📦 Inventario</a>
+        <a href="agenda.html">📅 Agenda</a>
+        <a href="caja.html">💵 Caja</a>
+        <a href="reportes.html">📊 Reportes</a>
+        <a href="configuracion.html">⚙️ Configuración</a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="mini-avatar">A</div>
+        <div>
+          <small>Sesión demo</small>
+          <strong>Administrador</strong>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main dashboard-page">
+      <header class="topbar dashboard-topbar">
+        <div class="title">
+          <span class="eyebrow">Sprint 1 · Panel inicial</span>
+          <h1>¡Bienvenido a Malupets! 👋</h1>
+          <p>Resumen operativo para ventas, clientes, mascotas, agenda y caja.</p>
+        </div>
+        <div class="top-actions">
+          <button class="btn btn-soft" id="apiStatus">API: verificando...</button>
+          <a class="btn btn-blue" href="pos.html">Nueva venta</a>
+        </div>
+      </header>
+
+      <section class="hero hero-dashboard">
+        <div>
+          <span class="pill">Profesional · Pet friendly · POS</span>
+          <h2>Cuidamos la operación para que ellos cuiden a las mascotas 💙</h2>
+          <p>Este tablero será el centro de control diario para recepción, caja y administración.</p>
+          <div class="actions">
+            <a class="btn btn-blue" href="clientes.html">+ Crear cliente</a>
+            <a class="btn btn-yellow" href="agenda.html">+ Agendar cita</a>
+            <a class="btn btn-dark" href="inventario.html">Ver inventario</a>
+          </div>
+        </div>
+        <div class="hero-pets" aria-hidden="true">
+          <span>🐶</span><span>🐱</span><span>🎀</span>
+        </div>
+      </section>
+
+      <section class="stats dashboard-stats">
+        <article class="card stat stat-blue">
+          <div class="stat-icon">💰</div>
+          <div>
+            <div class="label">Ventas del día</div>
+            <div class="value" id="salesToday">$ 0</div>
+            <small>Demo hasta conectar POS</small>
+          </div>
+        </article>
+        <article class="card stat stat-yellow">
+          <div class="stat-icon">📅</div>
+          <div>
+            <div class="label">Citas de hoy</div>
+            <div class="value" id="appointmentsToday">4</div>
+            <small>2 confirmadas · 1 pendiente</small>
+          </div>
+        </article>
+        <article class="card stat stat-green">
+          <div class="stat-icon">👥</div>
+          <div>
+            <div class="label">Clientes activos</div>
+            <div class="value" id="clientesCount">...</div>
+            <small>Conectado a D1</small>
+          </div>
+        </article>
+        <article class="card stat stat-pink">
+          <div class="stat-icon">🐾</div>
+          <div>
+            <div class="label">Mascotas registradas</div>
+            <div class="value" id="petsCount">...</div>
+            <small>Conectado a D1</small>
+          </div>
+        </article>
+      </section>
+
+      <section class="dashboard-grid">
+        <article class="card panel-large">
+          <div class="section-head">
+            <div>
+              <h3>Ventas recientes</h3>
+              <p>Vista demo mientras conectamos el POS.</p>
+            </div>
+            <a href="pos.html">Ir al POS</a>
+          </div>
+          <div class="list-clean">
+            <div class="list-row"><span class="badge blue">#0001</span><strong>Venta mostrador</strong><span>$ 120.000</span></div>
+            <div class="list-row"><span class="badge yellow">#0002</span><strong>Baño y peluquería</strong><span>$ 80.000</span></div>
+            <div class="list-row"><span class="badge pink">#0003</span><strong>Consulta veterinaria</strong><span>$ 60.000</span></div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="section-head">
+            <div>
+              <h3>Estado de caja</h3>
+              <p>Control diario de apertura y cierre.</p>
+            </div>
+            <span class="status open">Abierta</span>
+          </div>
+          <div class="cash-box">
+            <small>Total esperado</small>
+            <strong>$ 260.000</strong>
+            <div class="progress"><span style="width:68%"></span></div>
+          </div>
+          <div class="actions compact">
+            <a class="btn btn-green" href="caja.html">Ver caja</a>
+            <button class="btn btn-soft" data-demo="Cierre de caja disponible cuando conectemos el módulo de caja.">Cerrar caja</button>
+          </div>
+        </article>
+
+        <article class="card panel-large">
+          <div class="section-head">
+            <div>
+              <h3>Agenda de hoy</h3>
+              <p>Próximas citas y servicios del spa.</p>
+            </div>
+            <a href="agenda.html">Ver agenda</a>
+          </div>
+          <div class="timeline">
+            <div class="time-item"><time>09:00</time><div><strong>Baño y peluquería</strong><small>Max · María López</small></div><span class="status open">Confirmada</span></div>
+            <div class="time-item"><time>10:30</time><div><strong>Consulta veterinaria</strong><small>Luna · Carlos Ruiz</small></div><span class="status open">Confirmada</span></div>
+            <div class="time-item"><time>14:00</time><div><strong>Vacunación</strong><small>Rocky · Ana Torres</small></div><span class="status pending">Pendiente</span></div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="section-head">
+            <div>
+              <h3>Alertas</h3>
+              <p>Pendientes importantes.</p>
+            </div>
+          </div>
+          <div class="alerts">
+            <div class="alert yellow">📦 3 productos próximos a agotarse</div>
+            <div class="alert blue">🧾 Impresora POS pendiente por configurar</div>
+            <div class="alert pink">💵 Cajón monedero pendiente por prueba</div>
+          </div>
+        </article>
+
+        <article class="card panel-large">
+          <div class="section-head">
+            <div>
+              <h3>Rendimiento semanal</h3>
+              <p>Gráfico visual demo, luego saldrá desde reportes.</p>
+            </div>
+            <a href="reportes.html">Reportes</a>
+          </div>
+          <div class="bar-chart" aria-label="Rendimiento semanal demo">
+            <span style="height:35%"><b>L</b></span>
+            <span style="height:55%"><b>M</b></span>
+            <span style="height:42%"><b>M</b></span>
+            <span style="height:80%"><b>J</b></span>
+            <span style="height:66%"><b>V</b></span>
+            <span style="height:90%"><b>S</b></span>
+            <span style="height:48%"><b>D</b></span>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="section-head">
+            <div>
+              <h3>Accesos rápidos</h3>
+              <p>Operación del día.</p>
+            </div>
+          </div>
+          <div class="quick-grid">
+            <a href="clientes.html">👤 Cliente</a>
+            <a href="mascotas.html">🐾 Mascota</a>
+            <a href="pos.html">🧾 Facturar</a>
+            <a href="agenda.html">📅 Cita</a>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    async function loadDashboard(){
+      try{
+        const [health, customers, pets] = await Promise.all([
+          Malu.api('/api/health'),
+          Malu.api('/api/customers'),
+          Malu.api('/api/pets')
+        ]);
+        document.getElementById('apiStatus').textContent = health?.ok ? 'API: conectada' : 'API: revisar';
+        document.getElementById('apiStatus').className = health?.ok ? 'btn btn-soft ok' : 'btn btn-soft warn';
+        document.getElementById('clientesCount').textContent = Array.isArray(customers) ? customers.length : 0;
+        document.getElementById('petsCount').textContent = Array.isArray(pets) ? pets.length : 0;
+      }catch(error){
+        document.getElementById('apiStatus').textContent = 'API: sin conexión';
+        document.getElementById('apiStatus').className = 'btn btn-soft warn';
+        document.getElementById('clientesCount').textContent = '0';
+        document.getElementById('petsCount').textContent = '0';
+      }
+    }
+    loadDashboard();
+  </script>
+</body>
+</html>
