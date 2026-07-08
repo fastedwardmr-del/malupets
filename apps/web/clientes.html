@@ -1,1 +1,207 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Clientes</title><link rel="stylesheet" href="css/styles.css"></head><body><div class="app"><aside class="sidebar"><div class="brand"><span class="malu">Malu</span><span class="dog-dot">🐶</span><span class="pets">Pets</span></div><nav class="nav"><a href="dashboard.html">Dashboard</a><a href="pos.html">POS - Facturación</a><a class="active" href="clientes.html">Clientes</a><a href="mascotas.html">Mascotas</a><a href="inventario.html">Inventario</a><a href="agenda.html">Agenda</a><a href="caja.html">Caja</a><a href="reportes.html">Reportes</a><a href="configuracion.html">Configuración</a></nav></aside><main class="main"><div class="topbar"><div class="title"><h1>Clientes</h1><p>Administra propietarios y sus mascotas.</p></div></div><section class="grid layout-2"><div class="card"><h3>Nuevo cliente</h3><div class="form"><input id="full_name" class="input" placeholder="Nombre completo"><input id="phone" class="input" placeholder="Teléfono"><input id="email" class="input" placeholder="Correo"><input id="city" class="input" placeholder="Ciudad"><textarea id="notes" placeholder="Notas"></textarea><button class="btn btn-blue" onclick="crearCliente()">Guardar cliente</button><div id="msg" class="notice" style="display:none"></div></div></div><div class="card"><h3>Listado</h3><table class="table"><thead><tr><th>Cliente</th><th>Teléfono</th><th>Ciudad</th></tr></thead><tbody id="rows"></tbody></table></div></section></main></div><script src="js/config.js"></script><script src="js/app.js"></script><script>async function cargar(){const data=await Malu.api('/api/customers');rows.innerHTML=data.map(x=>`<tr><td>${x.full_name}</td><td>${x.phone||''}</td><td>${x.city||''}</td></tr>`).join('')||'<tr><td colspan="3">Sin clientes</td></tr>'}async function crearCliente(){const body={full_name:full_name.value,phone:phone.value,email:email.value,city:city.value,notes:notes.value};const r=await Malu.api('/api/customers',{method:'POST',body:JSON.stringify(body)});msg.style.display='block';msg.textContent=r.message||r.error;if(r.ok){full_name.value=phone.value=email.value=city.value=notes.value='';cargar();}}cargar();</script></body></html>
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Clientes | Malupets</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .clients-shell{display:grid;grid-template-columns:360px 1fr;gap:18px;align-items:start}
+    .client-search{display:flex;gap:10px;margin-bottom:14px}.client-search input{flex:1}
+    .client-list{display:flex;flex-direction:column;gap:10px;max-height:68vh;overflow:auto;padding-right:4px}
+    .client-item{border:1px solid #e8eef7;background:#fff;border-radius:18px;padding:14px;cursor:pointer;transition:.18s;display:flex;justify-content:space-between;gap:10px;align-items:center}
+    .client-item:hover,.client-item.active{border-color:#00a6e8;background:#eef9ff;box-shadow:0 8px 22px rgba(0,166,232,.12)}
+    .client-item strong{display:block;color:#0f172a;margin-bottom:4px}.client-item span{font-size:12px;color:#64748b}
+    .pet-pill{font-size:12px;background:#fff4c2;color:#7a5a00;border-radius:999px;padding:6px 9px;white-space:nowrap;font-weight:700}
+    .detail-head{display:flex;justify-content:space-between;gap:15px;align-items:flex-start;margin-bottom:14px}
+    .detail-name h2{margin:0;font-size:26px;color:#0f172a}.detail-name p{margin:5px 0 0;color:#64748b}
+    .info-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0}.info-box{background:#f8fafc;border:1px solid #e8eef7;border-radius:16px;padding:12px}.info-box small{display:block;color:#64748b;font-size:11px;margin-bottom:4px}.info-box strong{color:#0f172a;font-size:14px}
+    .pets-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.pet-card{border:1px solid #e8eef7;border-radius:18px;padding:14px;background:linear-gradient(180deg,#fff,#fbfdff)}.pet-avatar{width:48px;height:48px;border-radius:16px;background:#e8f9ff;display:flex;align-items:center;justify-content:center;font-size:25px;margin-bottom:10px}.pet-card h4{margin:0;color:#0f172a}.pet-card p{margin:5px 0;color:#64748b;font-size:13px}.pet-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.tag{font-size:11px;background:#ecfdf5;color:#087f5b;border-radius:999px;padding:5px 8px;font-weight:700}.tag.blue{background:#eff6ff;color:#006bb6}.tag.pink{background:#fff0f7;color:#b42372}
+    .empty-state{text-align:center;padding:40px 20px;color:#64748b}.empty-state .icon{font-size:46px;margin-bottom:12px}
+    .modal{position:fixed;inset:0;background:rgba(15,23,42,.38);display:none;align-items:center;justify-content:center;padding:20px;z-index:20}.modal.show{display:flex}.modal-card{background:#fff;border-radius:24px;width:min(720px,100%);box-shadow:0 22px 70px rgba(15,23,42,.2);padding:22px}.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.modal-head h3{margin:0}.close{border:0;background:#f1f5f9;border-radius:12px;width:38px;height:38px;cursor:pointer}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.form-grid .full{grid-column:1/-1}.actions{display:flex;justify-content:flex-end;gap:10px;margin-top:14px}.toast{position:fixed;right:22px;bottom:22px;background:#071124;color:white;padding:14px 18px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.2);display:none;z-index:30}.toast.show{display:block}.btn-soft{background:#eafaf3;color:#079455;border:0}.btn-dark{background:#071124;color:#fff;border:0}
+    @media(max-width:980px){.clients-shell{grid-template-columns:1fr}.client-list{max-height:none}.info-grid{grid-template-columns:1fr}.pets-grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><span class="malu">Malu</span><span class="dog-dot">🐶</span><span class="pets">Pets</span></div>
+    <nav class="nav">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="pos.html">POS - Facturación</a>
+      <a class="active" href="clientes.html">Clientes</a>
+      <a href="mascotas.html">Mascotas</a>
+      <a href="inventario.html">Inventario</a>
+      <a href="agenda.html">Agenda</a>
+      <a href="caja.html">Caja</a>
+      <a href="reportes.html">Reportes</a>
+      <a href="configuracion.html">Configuración</a>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="title">
+        <h1>Clientes y mascotas</h1>
+        <p>Registra propietarios y administra varias mascotas por cliente.</p>
+      </div>
+      <button class="btn btn-blue" onclick="openCustomerModal()">+ Nuevo cliente</button>
+    </div>
+
+    <section class="clients-shell">
+      <div class="card">
+        <div class="client-search">
+          <input id="search" class="input" placeholder="Buscar cliente, teléfono o ciudad..." oninput="renderCustomers()">
+        </div>
+        <div id="clientList" class="client-list"></div>
+      </div>
+
+      <div class="card" id="detailPanel">
+        <div class="empty-state">
+          <div class="icon">🐾</div>
+          <h3>Selecciona un cliente</h3>
+          <p>Al seleccionar un propietario verás sus datos y sus mascotas registradas.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="customerModal" class="modal">
+  <div class="modal-card">
+    <div class="modal-head"><h3>Nuevo cliente</h3><button class="close" onclick="closeModal('customerModal')">×</button></div>
+    <div class="form-grid">
+      <input id="c_full_name" class="input full" placeholder="Nombre completo *">
+      <input id="c_phone" class="input" placeholder="Teléfono">
+      <input id="c_email" class="input" placeholder="Correo">
+      <input id="c_document_number" class="input" placeholder="Documento">
+      <input id="c_city" class="input" placeholder="Ciudad">
+      <input id="c_address" class="input full" placeholder="Dirección">
+      <textarea id="c_notes" class="full" placeholder="Notas del cliente"></textarea>
+    </div>
+    <div class="actions"><button class="btn btn-soft" onclick="closeModal('customerModal')">Cancelar</button><button class="btn btn-blue" onclick="saveCustomer()">Guardar cliente</button></div>
+  </div>
+</div>
+
+<div id="petModal" class="modal">
+  <div class="modal-card">
+    <div class="modal-head"><h3>Agregar mascota</h3><button class="close" onclick="closeModal('petModal')">×</button></div>
+    <div class="form-grid">
+      <input id="p_name" class="input full" placeholder="Nombre de la mascota *">
+      <select id="p_species" class="input"><option value="Perro">Perro</option><option value="Gato">Gato</option><option value="Ave">Ave</option><option value="Conejo">Conejo</option><option value="Otro">Otro</option></select>
+      <input id="p_breed" class="input" placeholder="Raza">
+      <select id="p_sex" class="input"><option value="">Sexo</option><option value="Macho">Macho</option><option value="Hembra">Hembra</option></select>
+      <input id="p_color" class="input" placeholder="Color">
+      <input id="p_birth_date" class="input" type="date" placeholder="Fecha nacimiento">
+      <input id="p_weight" class="input" type="number" step="0.1" placeholder="Peso kg">
+      <input id="p_microchip" class="input full" placeholder="Microchip">
+      <textarea id="p_allergies" class="full" placeholder="Alergias"></textarea>
+      <textarea id="p_notes" class="full" placeholder="Observaciones"></textarea>
+    </div>
+    <div class="actions"><button class="btn btn-soft" onclick="closeModal('petModal')">Cancelar</button><button class="btn btn-blue" onclick="savePet()">Guardar mascota</button></div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
+<script>
+let customers = [];
+let pets = [];
+let selectedCustomerId = null;
+
+function showToast(message){ toast.textContent = message; toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'), 2500); }
+function openCustomerModal(){ customerModal.classList.add('show'); setTimeout(()=>c_full_name.focus(),50); }
+function openPetModal(){ if(!selectedCustomerId) return showToast('Selecciona primero un cliente'); petModal.classList.add('show'); setTimeout(()=>p_name.focus(),50); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+function petIcon(species){ return species === 'Gato' ? '🐱' : species === 'Ave' ? '🐦' : species === 'Conejo' ? '🐰' : '🐶'; }
+
+async function loadData(){
+  try{
+    const [c,p] = await Promise.all([Malu.api('/api/customers'), Malu.api('/api/pets')]);
+    customers = Array.isArray(c) ? c : [];
+    pets = Array.isArray(p) ? p : [];
+    if(!selectedCustomerId && customers[0]) selectedCustomerId = customers[0].id;
+    renderCustomers();
+    renderDetail();
+  }catch(e){ showToast('No se pudo conectar con la API'); }
+}
+
+function renderCustomers(){
+  const q = (search.value || '').toLowerCase().trim();
+  const filtered = customers.filter(c => `${c.full_name} ${c.phone||''} ${c.city||''}`.toLowerCase().includes(q));
+  clientList.innerHTML = filtered.map(c => {
+    const count = pets.filter(p => Number(p.customer_id) === Number(c.id)).length;
+    return `<div class="client-item ${Number(selectedCustomerId)===Number(c.id)?'active':''}" onclick="selectCustomer(${c.id})">
+      <div><strong>${escapeHtml(c.full_name)}</strong><span>${escapeHtml(c.phone || 'Sin teléfono')} · ${escapeHtml(c.city || 'Sin ciudad')}</span></div>
+      <div class="pet-pill">${count} mascota${count===1?'':'s'}</div>
+    </div>`;
+  }).join('') || `<div class="empty-state"><div class="icon">🔎</div><p>No hay clientes registrados.</p></div>`;
+}
+
+function selectCustomer(id){ selectedCustomerId = id; renderCustomers(); renderDetail(); }
+
+function renderDetail(){
+  const c = customers.find(x => Number(x.id) === Number(selectedCustomerId));
+  if(!c){ detailPanel.innerHTML = `<div class="empty-state"><div class="icon">🐾</div><h3>Selecciona un cliente</h3><p>Al seleccionar un propietario verás sus datos y mascotas.</p></div>`; return; }
+  const list = pets.filter(p => Number(p.customer_id) === Number(c.id));
+  detailPanel.innerHTML = `
+    <div class="detail-head">
+      <div class="detail-name"><h2>${escapeHtml(c.full_name)}</h2><p>Propietario registrado en Malupets</p></div>
+      <button class="btn btn-blue" onclick="openPetModal()">+ Agregar mascota</button>
+    </div>
+    <div class="info-grid">
+      <div class="info-box"><small>Teléfono</small><strong>${escapeHtml(c.phone || 'No registrado')}</strong></div>
+      <div class="info-box"><small>Correo</small><strong>${escapeHtml(c.email || 'No registrado')}</strong></div>
+      <div class="info-box"><small>Ciudad</small><strong>${escapeHtml(c.city || 'No registrada')}</strong></div>
+      <div class="info-box"><small>Documento</small><strong>${escapeHtml(c.document_number || 'No registrado')}</strong></div>
+      <div class="info-box"><small>Dirección</small><strong>${escapeHtml(c.address || 'No registrada')}</strong></div>
+      <div class="info-box"><small>Mascotas</small><strong>${list.length}</strong></div>
+    </div>
+    <h3>Mascotas del cliente</h3>
+    <div class="pets-grid">
+      ${list.map(p => `<div class="pet-card">
+        <div class="pet-avatar">${petIcon(p.species)}</div>
+        <h4>${escapeHtml(p.name)}</h4>
+        <p>${escapeHtml(p.species || 'Mascota')} ${p.breed ? '· ' + escapeHtml(p.breed) : ''}</p>
+        <div class="pet-meta">
+          ${p.sex ? `<span class="tag pink">${escapeHtml(p.sex)}</span>` : ''}
+          ${p.weight ? `<span class="tag blue">${escapeHtml(p.weight)} kg</span>` : ''}
+          ${p.microchip ? `<span class="tag">Chip</span>` : ''}
+        </div>
+      </div>`).join('') || `<div class="empty-state"><div class="icon">🐶</div><p>Este cliente aún no tiene mascotas.</p></div>`}
+    </div>`;
+}
+
+async function saveCustomer(){
+  const body = {
+    full_name: c_full_name.value.trim(), phone: c_phone.value.trim(), email: c_email.value.trim(),
+    document_number: c_document_number.value.trim(), city: c_city.value.trim(), address: c_address.value.trim(), notes: c_notes.value.trim()
+  };
+  if(!body.full_name) return showToast('El nombre del cliente es obligatorio');
+  const res = await Malu.api('/api/customers', { method:'POST', body: JSON.stringify(body) });
+  if(res.ok){ closeModal('customerModal'); clearCustomerForm(); selectedCustomerId = res.id; showToast('Cliente creado'); await loadData(); }
+  else showToast(res.error || 'No se pudo crear el cliente');
+}
+
+async function savePet(){
+  const body = {
+    customer_id: selectedCustomerId, name: p_name.value.trim(), species: p_species.value,
+    breed: p_breed.value.trim(), sex: p_sex.value, color: p_color.value.trim(), birth_date: p_birth_date.value,
+    weight: p_weight.value ? Number(p_weight.value) : null, microchip: p_microchip.value.trim(), allergies: p_allergies.value.trim(), notes: p_notes.value.trim()
+  };
+  if(!body.name) return showToast('El nombre de la mascota es obligatorio');
+  const res = await Malu.api('/api/pets', { method:'POST', body: JSON.stringify(body) });
+  if(res.ok){ closeModal('petModal'); clearPetForm(); showToast('Mascota creada'); await loadData(); }
+  else showToast(res.error || 'No se pudo crear la mascota');
+}
+
+function clearCustomerForm(){ ['c_full_name','c_phone','c_email','c_document_number','c_city','c_address','c_notes'].forEach(id=>document.getElementById(id).value=''); }
+function clearPetForm(){ ['p_name','p_breed','p_sex','p_color','p_birth_date','p_weight','p_microchip','p_allergies','p_notes'].forEach(id=>document.getElementById(id).value=''); p_species.value='Perro'; }
+function escapeHtml(v){ return String(v ?? '').replace(/[&<>'"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m])); }
+
+loadData();
+</script>
+</body>
+</html>

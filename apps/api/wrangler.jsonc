@@ -10,7 +10,7 @@
     {
       "binding": "DB",
       "database_name": "malupets-db",
-      "database_id": "4e961cb0-959c-40ab-8fea-1741eccb5a95"
+      "database_id": "REEMPLAZAR_CON_DATABASE_ID"
     }
   ],
   "r2_buckets": [
