@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "api-malupets",
+  "main": "src/index.js",
+  "compatibility_date": "2026-07-07",
+  "observability": {
+    "enabled": true
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "malupets-db",
+      "database_id": "REEMPLAZAR_CON_DATABASE_ID"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "FILES",
+      "bucket_name": "malupets-files"
+    }
+  ]
+}
