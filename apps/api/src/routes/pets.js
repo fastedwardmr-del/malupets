@@ -40,3 +40,32 @@ export async function createPet(request, env) {
 
   return json({ ok: true, message: "Mascota creada correctamente", id: result.meta.last_row_id }, 201);
 }
+export async function updatePet(request, env, id) {
+  const body = await readJson(request);
+
+  if (!id) return json({ ok: false, error: "ID de mascota requerido" }, 400);
+  if (!body.name) return json({ ok: false, error: "El nombre de la mascota es obligatorio" }, 400);
+
+  await env.DB.prepare(`
+    UPDATE pets
+    SET name = ?, species = ?, breed = ?, sex = ?, color = ?,
+        birth_date = ?, weight = ?, photo_url = ?, microchip = ?,
+        allergies = ?, notes = ?, updated_at = CURRENT_TIMESTAMP
+    WHERE id = ? AND company_id = 1
+  `).bind(
+    body.name,
+    body.species || "",
+    body.breed || "",
+    body.sex || "",
+    body.color || "",
+    body.birth_date || "",
+    body.weight || null,
+    body.photo_url || "",
+    body.microchip || "",
+    body.allergies || "",
+    body.notes || "",
+    id
+  ).run();
+
+  return json({ ok: true, message: "Mascota actualizada correctamente" });
+}

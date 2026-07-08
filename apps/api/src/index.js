@@ -1,8 +1,8 @@
 import { json } from "./utils/response.js";
 import { health } from "./routes/health.js";
 import { getCompany } from "./routes/companies.js";
-import { listCustomers, createCustomer } from "./routes/customers.js";
-import { listPets, createPet } from "./routes/pets.js";
+import { listCustomers, createCustomer, updateCustomer } from "./routes/customers.js";
+import { listPets, createPet, updatePet } from "./routes/pets.js";
 
 export default {
   async fetch(request, env) {
@@ -25,6 +25,16 @@ export default {
 
       if (path === "/api/pets" && method === "GET") return listPets(request, env);
       if (path === "/api/pets" && method === "POST") return createPet(request, env);
+
+      const customerEditMatch = path.match(/^\/api\/customers\/(\d+)$/);
+      if (customerEditMatch && method === "PUT") {
+        return updateCustomer(request, env, customerEditMatch[1]);
+      }
+
+      const petEditMatch = path.match(/^\/api\/pets\/(\d+)$/);
+      if (petEditMatch && method === "PUT") {
+        return updatePet(request, env, petEditMatch[1]);
+      }
 
       return json({ ok: false, error: "Endpoint no encontrado" }, 404);
     } catch (e) {
