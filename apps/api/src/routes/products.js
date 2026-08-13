@@ -13,7 +13,7 @@ function toNumber(value, fallback = 0) {
 }
 
 function getBucket(env) {
-  return env.BUCKET || env.R2 || env.MALUPETS_BUCKET || env.IMAGES;
+  return env.FILES || env.BUCKET || env.R2 || env.MALUPETS_BUCKET || env.IMAGES;
 }
 
 export async function listProducts(request, env) {
@@ -179,9 +179,15 @@ export async function getProductImage(request, env, key) {
   const object = await bucket.get(objectKey);
   if (!object) return json({ ok: false, error: "Imagen no encontrada" }, 404);
 
-  const headers = new Headers();
+  const headers = new Headers({
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Cache-Control": "public, max-age=31536000"
+  });
+
   object.writeHttpMetadata(headers);
   headers.set("etag", object.httpEtag);
-  headers.set("Cache-Control", "public, max-age=31536000");
+
   return new Response(object.body, { headers });
 }

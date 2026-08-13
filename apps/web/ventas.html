@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Ventas / Facturas | Malupets</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .sales-toolbar{display:grid;grid-template-columns:1fr 190px;gap:10px;margin-bottom:14px}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}
+    .stat{background:#f8fafc;border:1px solid #e8eef7;border-radius:16px;padding:14px}.stat small{display:block;color:#64748b;margin-bottom:5px}.stat strong{font-size:20px;color:#0f172a}
+    .sales-table{width:100%;border-collapse:collapse}.sales-table th{text-align:left;font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.04em;padding:10px;border-bottom:1px solid #e8eef7}.sales-table td{padding:12px 10px;border-bottom:1px solid #edf2f7;font-size:13px}.sales-table tbody tr:hover{background:#fbfdff}
+    .invoice{font-weight:800;color:#0f172a}.badge{display:inline-block;padding:5px 8px;border-radius:999px;background:#eff6ff;color:#0369a1;font-size:11px;font-weight:800}
+    .row-actions{display:flex;gap:7px}.empty{text-align:center;padding:36px;color:#64748b}
+    .modal{position:fixed;inset:0;background:rgba(15,23,42,.42);display:none;align-items:center;justify-content:center;padding:20px;z-index:40}.modal.show{display:flex}
+    .modal-card{background:#fff;border-radius:24px;width:min(700px,100%);max-height:90vh;overflow:auto;padding:22px;box-shadow:0 22px 70px rgba(15,23,42,.24)}
+    .modal-head{display:flex;justify-content:space-between;gap:12px;align-items:start;border-bottom:1px solid #e8eef7;padding-bottom:13px}.modal-head h2{margin:0}.modal-sub{color:#64748b;font-size:13px;margin-top:4px}
+    .detail-meta{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:14px 0}.detail-meta div{background:#f8fafc;border-radius:14px;padding:11px}.detail-meta small{display:block;color:#64748b;margin-bottom:4px}
+    .detail-table{width:100%;border-collapse:collapse;font-size:13px}.detail-table th,.detail-table td{padding:10px 5px;border-bottom:1px solid #edf2f7;text-align:left}.detail-table th:last-child,.detail-table td:last-child{text-align:right}
+    .detail-total{display:flex;justify-content:space-between;font-size:22px;font-weight:900;margin-top:16px}
+    .modal-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:18px}
+    .toast{position:fixed;right:22px;bottom:22px;background:#071124;color:#fff;padding:14px 18px;border-radius:15px;display:none;z-index:60}.toast.show{display:block}
+    @media(max-width:850px){.stats{grid-template-columns:1fr}.sales-toolbar{grid-template-columns:1fr}.table-wrap{overflow:auto}.sales-table{min-width:760px}.detail-meta{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><span class="malu">Malu</span><span class="dog-dot">🐶</span><span class="pets">Pets</span></div>
+    <nav class="nav">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="pos.html">POS - Facturación</a>
+      <a class="active" href="ventas.html">Ventas / Facturas</a>
+      <a href="clientes.html">Clientes</a>
+      <a href="mascotas.html">Mascotas</a>
+      <a href="inventario.html">Inventario</a>
+      <a href="agenda.html">Agenda</a>
+      <a href="caja.html">Caja</a>
+      <a href="reportes.html">Reportes</a>
+      <a href="configuracion.html">Configuración</a>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="title">
+        <h1>Ventas / Facturas</h1>
+        <p>Consulta ventas registradas, revisa el detalle y reimprime comprobantes.</p>
+      </div>
+      <button class="btn btn-blue" onclick="loadSales()">Actualizar</button>
+    </div>
+
+    <section class="card">
+      <div class="sales-toolbar">
+        <input id="search" class="input" placeholder="Buscar factura, cliente o medio de pago" oninput="renderSales()">
+        <select id="dateFilter" class="select" onchange="renderSales()">
+          <option value="all">Todas las fechas</option>
+          <option value="today">Hoy</option>
+          <option value="7">Últimos 7 días</option>
+          <option value="30">Últimos 30 días</option>
+        </select>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><small>Ventas visibles</small><strong id="visibleCount">0</strong></div>
+        <div class="stat"><small>Total vendido</small><strong id="visibleTotal">$ 0</strong></div>
+        <div class="stat"><small>Última factura</small><strong id="lastInvoice">—</strong></div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="sales-table">
+          <thead>
+            <tr><th>Factura</th><th>Fecha</th><th>Cliente</th><th>Pago</th><th>Ítems</th><th>Total</th><th></th></tr>
+          </thead>
+          <tbody id="salesRows"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="detailModal" class="modal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div><h2 id="detailInvoice">Factura</h2><div id="detailDate" class="modal-sub"></div></div>
+      <button class="btn btn-soft" onclick="closeDetail()">Cerrar</button>
+    </div>
+    <div id="detailContent"></div>
+    <div class="modal-actions">
+      <button class="btn btn-dark" onclick="printCurrentSale()">Imprimir / Reimprimir</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
+<script>
+let sales = [];
+let currentSale = null;
+
+function el(id){ return document.getElementById(id); }
+
+function money(value){
+  return new Intl.NumberFormat('es-CO',{
+    style:'currency',
+    currency:'COP',
+    maximumFractionDigits:0
+  }).format(Number(value || 0));
+}
+
+function escapeHtml(value){
+  return String(value ?? '').replace(/[&<>'"]/g, char => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'
+  })[char]);
+}
+
+function showToast(message){
+  const node = el('toast');
+  node.textContent = message;
+  node.classList.add('show');
+  setTimeout(() => node.classList.remove('show'), 2600);
+}
+
+function parseDate(value){
+  if(!value) return null;
+  const text = String(value);
+  const normalized = text.includes('T') ? text : text.replace(' ','T') + 'Z';
+  const date = new Date(normalized);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatDate(value){
+  const date = parseDate(value);
+  return date ? date.toLocaleString('es-CO') : (value || '—');
+}
+
+async function loadSales(){
+  try{
+    const data = await Malu.api('/api/sales');
+    sales = Array.isArray(data) ? data : (Array.isArray(data?.sales) ? data.sales : []);
+    renderSales();
+  }catch(error){
+    console.error(error);
+    showToast('No se pudieron cargar las ventas');
+  }
+}
+
+function matchesDateFilter(sale){
+  const filter = el('dateFilter').value;
+  if(filter === 'all') return true;
+
+  const date = parseDate(sale.created_at);
+  if(!date) return false;
+
+  const now = new Date();
+
+  if(filter === 'today'){
+    return date.getFullYear() === now.getFullYear() &&
+      date.getMonth() === now.getMonth() &&
+      date.getDate() === now.getDate();
+  }
+
+  const days = Number(filter);
+  const min = new Date(now.getTime() - days * 86400000);
+  return date >= min;
+}
+
+function saleItemCount(sale){
+  if(sale.item_count != null) return Number(sale.item_count || 0);
+  if(sale.items_count != null) return Number(sale.items_count || 0);
+  if(sale.total_items != null) return Number(sale.total_items || 0);
+  return '—';
+}
+
+function filteredSales(){
+  const query = (el('search').value || '').trim().toLowerCase();
+  return sales.filter(sale => {
+    const text = `${sale.invoice_number || ''} ${sale.customer_name || 'Cliente ocasional'} ${sale.payment_method || ''}`.toLowerCase();
+    return text.includes(query) && matchesDateFilter(sale);
+  });
+}
+
+function renderSales(){
+  const list = filteredSales();
+
+  el('salesRows').innerHTML = list.map(sale => `
+    <tr>
+      <td><span class="invoice">${escapeHtml(sale.invoice_number || ('#' + sale.id))}</span></td>
+      <td>${escapeHtml(formatDate(sale.created_at))}</td>
+      <td>${escapeHtml(sale.customer_name || 'Cliente ocasional')}</td>
+      <td><span class="badge">${escapeHtml(sale.payment_method || '—')}</span></td>
+      <td>${escapeHtml(saleItemCount(sale))}</td>
+      <td><strong>${money(sale.total)}</strong></td>
+      <td><div class="row-actions"><button class="btn btn-soft" onclick="openDetail(${Number(sale.id)})">Ver detalle</button></div></td>
+    </tr>
+  `).join('') || '<tr><td colspan="7"><div class="empty">No hay ventas para mostrar.</div></td></tr>';
+
+  el('visibleCount').textContent = list.length;
+  el('visibleTotal').textContent = money(list.reduce((sum,sale)=>sum+Number(sale.total||0),0));
+  el('lastInvoice').textContent = list.length ? (list[0].invoice_number || `#${list[0].id}`) : '—';
+}
+
+async function openDetail(id){
+  try{
+    const data = await Malu.api(`/api/sales/${id}`);
+
+    if(data && data.sale){
+      currentSale = {
+        ...data.sale,
+        items: Array.isArray(data.items) ? data.items : []
+      };
+    }else if(data && data.id){
+      currentSale = {
+        ...data,
+        items: Array.isArray(data.items) ? data.items : []
+      };
+    }else{
+      return showToast((data && data.error) || 'No se pudo obtener el detalle');
+    }
+
+    renderDetail();
+    el('detailModal').classList.add('show');
+  }catch(error){
+    console.error(error);
+    showToast('No se pudo consultar la factura');
+  }
+}
+
+function renderDetail(){
+  if(!currentSale) return;
+  const items = Array.isArray(currentSale.items) ? currentSale.items : [];
+
+  el('detailInvoice').textContent = currentSale.invoice_number || `Venta #${currentSale.id}`;
+  el('detailDate').textContent = formatDate(currentSale.created_at);
+
+  el('detailContent').innerHTML = `
+    <div class="detail-meta">
+      <div><small>Cliente</small><strong>${escapeHtml(currentSale.customer_name || 'Cliente ocasional')}</strong></div>
+      <div><small>Medio de pago</small><strong>${escapeHtml(currentSale.payment_method || '—')}</strong></div>
+      <div><small>Subtotal</small><strong>${money(currentSale.subtotal)}</strong></div>
+      <div><small>Impuestos</small><strong>${money(currentSale.tax)}</strong></div>
+    </div>
+
+    <table class="detail-table">
+      <thead><tr><th>Producto</th><th>Cantidad</th><th>Precio</th><th>Total</th></tr></thead>
+      <tbody>
+        ${items.map(item => `
+          <tr>
+            <td>${escapeHtml(item.product_name || item.name || '')}</td>
+            <td>${escapeHtml(item.quantity || 0)}</td>
+            <td>${money(item.unit_price)}</td>
+            <td>${money(item.total ?? Number(item.quantity||0)*Number(item.unit_price||0))}</td>
+          </tr>
+        `).join('') || '<tr><td colspan="4">Sin detalle de productos.</td></tr>'}
+      </tbody>
+    </table>
+
+    ${currentSale.notes ? `<p><strong>Notas:</strong> ${escapeHtml(currentSale.notes)}</p>` : ''}
+    <div class="detail-total"><span>Total</span><span>${money(currentSale.total)}</span></div>
+  `;
+}
+
+function closeDetail(){
+  el('detailModal').classList.remove('show');
+}
+
+function printCurrentSale(){
+  if(!currentSale) return showToast('Selecciona primero una venta');
+
+  const items = Array.isArray(currentSale.items) ? currentSale.items : [];
+  const popup = window.open('', '_blank', 'width=430,height=700');
+  if(!popup) return showToast('El navegador bloqueó la ventana de impresión');
+
+  popup.document.write(`
+    <!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(currentSale.invoice_number || 'Comprobante')}</title>
+    <style>
+      body{font-family:Arial,sans-serif;width:72mm;margin:0 auto;padding:5mm;color:#111}
+      h2{text-align:center;margin:0 0 3mm}p{margin:1.5mm 0;font-size:12px}.line{border-top:1px dashed #555;margin:3mm 0}
+      table{width:100%;border-collapse:collapse;font-size:11px}td,th{padding:1.5mm 0;text-align:left}td:last-child,th:last-child{text-align:right}
+      .total{font-size:18px;font-weight:700;display:flex;justify-content:space-between;margin-top:3mm}.center{text-align:center}
+    </style></head><body>
+      <h2>MaluPets</h2>
+      <p class="center">${escapeHtml(currentSale.invoice_number || '')}</p>
+      <div class="line"></div>
+      <p><b>Fecha:</b> ${escapeHtml(formatDate(currentSale.created_at))}</p>
+      <p><b>Cliente:</b> ${escapeHtml(currentSale.customer_name || 'Cliente ocasional')}</p>
+      <p><b>Pago:</b> ${escapeHtml(currentSale.payment_method || '')}</p>
+      <div class="line"></div>
+      <table><thead><tr><th>Producto</th><th>Cant.</th><th>Total</th></tr></thead><tbody>
+        ${items.map(item => `<tr><td>${escapeHtml(item.product_name || item.name || '')}</td><td>${escapeHtml(item.quantity||0)}</td><td>${money(item.total ?? Number(item.quantity||0)*Number(item.unit_price||0))}</td></tr>`).join('')}
+      </tbody></table>
+      <div class="line"></div>
+      <div class="total"><span>Total</span><span>${money(currentSale.total)}</span></div>
+      <div class="line"></div><p class="center">Gracias por su compra</p>
+    </body></html>
+  `);
+
+  popup.document.close();
+  popup.focus();
+  setTimeout(() => popup.print(), 250);
+}
+
+loadSales();
+</script>
+</body>
+</html>
