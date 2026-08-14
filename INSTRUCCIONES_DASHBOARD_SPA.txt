@@ -1,0 +1,103 @@
+MALUPETS - DASHBOARD REAL POR ROL + CITA COMPLETADA BLOQUEADA
+================================================================
+
+Construido sobre:
+Malupetsspa13082026.zip
+
+CAMBIOS
+-------
+1. Se elimina del Dashboard el bloque ficticio:
+   "Sesión demo / Administrador".
+
+   El único bloque de sesión es ahora el real que inyecta app.js:
+   usuario autenticado + rol + cerrar sesión.
+
+2. Citas COMPLETADAS:
+   - se pueden consultar;
+   - ya NO se pueden editar;
+   - ya NO se puede cambiar su estado;
+   - el bloqueo existe tanto en Agenda HTML como en la API.
+   Esto evita reabrir una cita incluso manipulando una petición manual.
+
+3. Dashboard SPA:
+   - muestra nombre del usuario real;
+   - citas asignadas hoy;
+   - por atender;
+   - en atención;
+   - completadas;
+   - listado de sus citas de hoy;
+   - próximas citas asignadas.
+   NO muestra ventas, caja ni datos administrativos.
+
+4. Dashboard ADMIN / general:
+   Se eliminaron métricas demo.
+   Ahora usa datos reales de D1 según permisos:
+   - ventas del día;
+   - cantidad de ventas;
+   - clientes activos;
+   - mascotas activas;
+   - agenda del día;
+   - últimas ventas;
+   - estado real de caja;
+   - productos con stock <= 5.
+
+ARCHIVOS NUEVOS
+---------------
+apps/api/src/routes/dashboard.js
+
+ARCHIVOS ACTUALIZADOS
+---------------------
+apps/api/src/routes/agenda.js
+apps/api/src/index.js
+apps/web/agenda.html
+apps/web/dashboard.html
+
+NO HAY MIGRACION D1
+-------------------
+No hay tablas ni columnas nuevas.
+
+INSTALACION
+-----------
+1. Descomprime sobre:
+   C:\Proyectos\Malupets
+
+2. Acepta reemplazar.
+
+3. Desde la raíz ejecuta:
+
+   .\deploy-dashboard-spa.bat
+
+Este script solo despliega API + Pages.
+
+PRUEBA ADMIN
+------------
+1. Inicia sesión como ADMIN.
+2. Dashboard debe mostrar datos reales.
+3. Ya NO debe aparecer "Sesión demo".
+4. Debe seguir apareciendo abajo la sesión real.
+5. Abre Agenda.
+6. Completa una cita.
+7. Abre esa cita nuevamente.
+8. Debe indicar que está bloqueada y no mostrar acciones de edición.
+
+PRUEBA SPA
+----------
+1. Inicia sesión con usuario SPA.
+2. Dashboard debe mostrar únicamente:
+   - sus citas asignadas;
+   - por atender;
+   - en atención;
+   - completadas;
+   - próximas asignaciones.
+3. No debe mostrar ventas, caja, inventario ni métricas administrativas.
+4. El menú seguirá respetando los permisos configurados.
+
+GIT
+---
+Cuando lo verifiques:
+
+cd C:\Proyectos\Malupets
+git status
+git add .
+git commit -m "Dashboard por rol y bloqueo de citas completadas"
+git push

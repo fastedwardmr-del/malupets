@@ -1,0 +1,125 @@
+MALUPETS - MODULO AGENDA
+========================
+
+Este paquete fue construido sobre:
+Malupetscaja13082026.zip
+
+El estado recibido ya tenía funcionando:
+- Login / usuarios / roles / permisos
+- Clientes
+- Mascotas
+- Inventario
+- POS
+- Ventas / Facturas
+- Caja
+
+Agenda se agregó sin reemplazar esos módulos.
+
+ARCHIVOS NUEVOS
+---------------
+apps/api/src/routes/agenda.js
+database/migrations/05_agenda.sql
+
+ARCHIVOS ACTUALIZADOS
+---------------------
+apps/api/src/index.js
+apps/web/agenda.html
+
+FUNCIONALIDAD
+-------------
+- Agenda diaria.
+- Navegación por días y semana visual.
+- Nueva cita.
+- Editar cita.
+- Cliente y mascota relacionados.
+- Servicios con duración.
+- Responsable / personal con acceso a Agenda.
+- Fecha y hora.
+- Cálculo automático de hora estimada de finalización.
+- Estados:
+  AGENDADA
+  CONFIRMADA
+  EN ATENCION
+  COMPLETADA
+  CANCELADA
+  NO ASISTIO
+- Cambio rápido de estado.
+- Observaciones.
+- Filtro por responsable.
+- Filtro por estado.
+- Resumen diario.
+- Próximas citas.
+- Validación para que la mascota pertenezca al cliente.
+- Prevención de doble reserva del mismo responsable en horarios que se solapan.
+- Permiso "agenda" validado también en backend.
+
+SERVICIOS INICIALES
+-------------------
+La migración crea:
+- Baño (60 min)
+- Peluquería (90 min)
+- Baño + peluquería (120 min)
+- Consulta veterinaria (45 min)
+- Vacunación (30 min)
+- Desparasitación (30 min)
+
+Más adelante podemos crear administración de servicios desde Configuración.
+
+PERSONAL
+--------
+Agenda usa los usuarios existentes.
+
+Aparecen como responsables:
+- ADMIN
+- cualquier usuario activo que tenga permiso "agenda"
+
+Por lo tanto el rol SPA que ya teníamos funciona directamente.
+
+INSTALACION
+-----------
+1. Descomprime el ZIP sobre:
+   C:\Proyectos\Malupets
+
+2. Acepta reemplazar los archivos.
+
+3. Desde la raíz ejecuta:
+
+   .\install-agenda-module.bat
+
+Este instalador:
+- crea appointment_services y appointments;
+- inserta servicios iniciales;
+- despliega API;
+- despliega Pages.
+
+No borra información existente.
+
+PRUEBA RECOMENDADA
+------------------
+1. Entra como ADMIN.
+2. Abre Agenda.
+3. Pulsa + Nueva cita.
+4. Selecciona cliente.
+5. Verifica que Mascota muestre solo las mascotas de ese cliente.
+6. Selecciona servicio.
+7. Selecciona responsable.
+8. Fecha y hora.
+9. Guarda.
+10. Verifica que aparezca en el día correcto.
+11. Abre la cita.
+12. Prueba Confirmar.
+13. Prueba En atención.
+14. Prueba Completar.
+15. Crea otra cita para el mismo responsable a la misma hora.
+16. Debe impedir el solapamiento.
+17. Inicia sesión con un usuario SPA y verifica acceso a Agenda.
+
+GIT
+---
+Cuando todo esté probado:
+
+cd C:\Proyectos\Malupets
+git status
+git add .
+git commit -m "Agregar modulo de agenda"
+git push

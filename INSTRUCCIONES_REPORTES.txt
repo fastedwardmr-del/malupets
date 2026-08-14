@@ -1,0 +1,140 @@
+MALUPETS - MODULO REPORTES
+===========================
+
+Construido sobre:
+Malupetscajamejora.zip
+
+NO HAY MIGRACION D1.
+El módulo consulta las tablas que ya existen.
+
+REPORTES INCLUIDOS
+------------------
+VENTAS
+- Total vendido.
+- Cantidad de ventas.
+- Ticket promedio.
+- Ventas en efectivo.
+- Ventas por otros medios.
+- Ventas por medio de pago.
+- Ventas por día.
+- Productos más vendidos.
+- Detalle de facturas.
+
+INVENTARIO
+- Cantidad de productos.
+- Unidades actuales.
+- Valor del inventario a costo.
+- Valor potencial a precio de venta.
+- Productos con stock <= 5.
+- Tabla completa del inventario.
+
+CAJA
+- Cierres del período.
+- Diferencia de cada cierre.
+- Diferencia acumulada.
+- Ingresos manuales.
+- Egresos manuales.
+- Observaciones de cierre disponibles en Excel.
+
+AGENDA / SPA
+- Cantidad de citas.
+- Citas completadas.
+- Canceladas.
+- No asistió.
+- Servicios por tipo.
+- Servicios completados.
+- Desempeño por responsable.
+- Detalle de citas.
+
+CLIENTES / MASCOTAS
+- Totales activos.
+- Registros creados en el período (disponibles en respuesta API).
+
+FILTROS
+-------
+- Hoy.
+- Últimos 7 días.
+- Este mes.
+- Últimos 30 días.
+- Rango personalizado.
+
+EXPORTACIONES EXCEL
+-------------------
+1. Inventario actual.
+2. Ventas del período.
+3. Caja.
+4. Agenda / SPA.
+5. Reporte completo en un libro con múltiples hojas.
+
+INVENTARIO REIMPORTABLE
+-----------------------
+La exportación "Inventario actual" usa EXACTAMENTE:
+
+sku
+name
+category
+description
+cost_price
+sale_price
+stock
+unit
+
+Por eso el flujo queda:
+
+Reportes
+  -> Descargar inventario actual
+  -> Editar Excel
+  -> Inventario
+  -> Importar Excel
+
+Los productos con el mismo SKU se actualizan mediante el importador actual.
+
+ARCHIVOS NUEVOS
+---------------
+apps/api/src/routes/reports.js
+
+ARCHIVOS ACTUALIZADOS
+---------------------
+apps/api/src/index.js
+apps/web/reportes.html
+
+INSTALACION
+-----------
+1. Descomprime sobre:
+   C:\Proyectos\Malupets
+
+2. Acepta reemplazar.
+
+3. Ejecuta:
+   .\deploy-reports.bat
+
+4. Ctrl + F5.
+
+PRUEBA
+------
+1. Entra como ADMIN.
+2. Abre Reportes.
+3. Prueba Este mes.
+4. Revisa las cifras contra Ventas/Caja.
+5. Descarga Inventario actual.
+6. Abre el Excel y confirma las columnas.
+7. Si deseas, cambia un producto de prueba por SKU y vuelve a importarlo
+   desde Inventario para verificar el flujo.
+8. Prueba Exportar todo.
+
+PERMISOS
+--------
+El backend exige permiso:
+reports
+
+Por lo tanto un usuario sin Reportes no puede consultar /api/reports.
+
+GIT
+---
+Cuando quede probado:
+
+cd C:\Proyectos\Malupets
+git status
+git add .
+git commit -m "Agregar modulo de reportes"
+git push

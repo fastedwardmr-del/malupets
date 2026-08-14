@@ -1,0 +1,82 @@
+MALUPETS - DETALLE DE CIERRE DE CAJA
+=====================================
+
+Construido sobre:
+Malupetsdasboardporrol.zip
+
+CAMBIO
+------
+En Histórico de cierres se agrega una nueva columna "Detalle"
+con un botón de ojo:
+
+👁️
+
+Al pulsarlo se abre un modal con el cierre completo.
+
+EL DETALLE MUESTRA
+------------------
+- Número de cierre.
+- Fecha/hora de apertura.
+- Fecha/hora de cierre.
+- Usuario que abrió.
+- Usuario que cerró.
+- Saldo inicial.
+- Ventas en efectivo.
+- Ingresos manuales.
+- Egresos manuales.
+- Total vendido durante el turno.
+- Efectivo esperado.
+- Efectivo contado.
+- Diferencia.
+- Observación de apertura.
+- Observación de cierre.
+- Todas las ventas realizadas durante el turno.
+- Medio de pago de cada venta.
+- Todos los movimientos manuales.
+- Resumen de ventas por medio de pago.
+
+IMPORTANTE
+----------
+NO hay migración D1.
+
+El endpoint /api/cash/sessions/:id ya existía.
+Solo se enriqueció para devolver también las ventas del turno.
+
+ARCHIVOS ACTUALIZADOS
+---------------------
+apps/api/src/routes/cash.js
+apps/web/caja.html
+
+Nada más.
+
+INSTALACIÓN
+-----------
+1. Descomprime sobre:
+   C:\Proyectos\Malupets
+
+2. Acepta reemplazar.
+
+3. Ejecuta desde la raíz:
+
+   .\deploy-cash-detail.bat
+
+4. Ctrl + F5.
+
+PRUEBA
+------
+1. Entra a Caja.
+2. Ve a Histórico de cierres.
+3. Debe aparecer una columna "Detalle".
+4. Pulsa 👁️.
+5. Debe abrirse el modal con los datos de ese cierre.
+6. Comprueba especialmente la observación de cierre que antes no podías ver.
+
+GIT
+---
+Cuando confirmes:
+
+cd C:\Proyectos\Malupets
+git status
+git add .
+git commit -m "Agregar detalle a historico de caja"
+git push

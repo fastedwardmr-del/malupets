@@ -27,6 +27,17 @@
     .empty{padding:22px;text-align:center;color:#64748b;font-size:13px}
     @media(max-width:1100px){.cash-shell{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:650px){.metrics{grid-template-columns:1fr}.movement-actions{grid-template-columns:1fr}.table-wrap{overflow:auto}.movement-table,.history-table{min-width:650px}}
+  
+    .eye-btn{border:0;background:#eef7ff;color:#0879b6;width:34px;height:34px;border-radius:10px;cursor:pointer;font-size:16px;display:inline-flex;align-items:center;justify-content:center}.eye-btn:hover{background:#dff2ff}
+    .detail-modal{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;padding:18px;z-index:70}.detail-modal.show{display:flex}
+    .detail-card{width:min(920px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:24px;padding:22px;box-shadow:0 24px 80px rgba(15,23,42,.28)}
+    .detail-head{display:flex;justify-content:space-between;gap:12px;align-items:start;border-bottom:1px solid #e8eef7;padding-bottom:14px}.detail-head h2{margin:0}.detail-head p{margin:5px 0 0;color:#64748b;font-size:12px}
+    .detail-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:15px 0}.detail-metric{background:#f8fafc;border:1px solid #edf2f7;border-radius:14px;padding:11px}.detail-metric small{display:block;color:#64748b;font-size:10px;margin-bottom:4px}.detail-metric strong{font-size:16px;color:#0f172a}
+    .detail-section{margin-top:18px}.detail-section h3{font-size:14px;margin:0 0 9px}.detail-note{background:#fffbea;border:1px solid #fde68a;border-radius:12px;padding:11px;font-size:12px;color:#713f12}
+    .detail-table{width:100%;border-collapse:collapse}.detail-table th,.detail-table td{text-align:left;padding:9px 7px;border-bottom:1px solid #edf2f7;font-size:11px}.detail-table th{font-size:10px;color:#64748b;text-transform:uppercase}.detail-table td:last-child,.detail-table th:last-child{text-align:right}
+    .positive{color:#047857;font-weight:800}.negative{color:#be123c;font-weight:800}.neutral{color:#475569;font-weight:800}
+    @media(max-width:800px){.detail-summary{grid-template-columns:repeat(2,1fr)}.detail-table-wrap{overflow:auto}.detail-table{min-width:680px}}
+
   </style>
 </head>
 <body>
@@ -113,7 +124,7 @@
             </div>
             <div class="table-wrap">
               <table class="history-table">
-                <thead><tr><th>Apertura</th><th>Cierre</th><th>Responsable</th><th>Esperado</th><th>Contado</th><th>Diferencia</th></tr></thead>
+                <thead><tr><th>Apertura</th><th>Cierre</th><th>Responsable</th><th>Esperado</th><th>Contado</th><th>Diferencia</th><th>Detalle</th></tr></thead>
                 <tbody id="historyRows"></tbody>
               </table>
             </div>
@@ -152,7 +163,7 @@
       </div>
       <div class="table-wrap">
         <table class="history-table">
-          <thead><tr><th>Apertura</th><th>Cierre</th><th>Responsable</th><th>Esperado</th><th>Contado</th><th>Diferencia</th></tr></thead>
+          <thead><tr><th>Apertura</th><th>Cierre</th><th>Responsable</th><th>Esperado</th><th>Contado</th><th>Diferencia</th><th>Detalle</th></tr></thead>
           <tbody id="historyOnlyRows"></tbody>
         </table>
       </div>
@@ -177,6 +188,48 @@
       <button class="btn btn-soft" onclick="closeMovement()">Cancelar</button>
       <button class="btn btn-blue" onclick="saveMovement()">Guardar movimiento</button>
     </div>
+  </div>
+</div>
+
+
+<div id="cashDetailModal" class="detail-modal">
+  <div class="detail-card">
+    <div class="detail-head">
+      <div>
+        <h2 id="cashDetailTitle">Detalle de cierre</h2>
+        <p id="cashDetailSubtitle"></p>
+      </div>
+      <button class="btn btn-soft" onclick="closeCashDetail()">Cerrar</button>
+    </div>
+
+    <div id="cashDetailSummary" class="detail-summary"></div>
+
+    <div id="cashDetailNotes"></div>
+
+    <section class="detail-section">
+      <h3>Ventas del turno</h3>
+      <div class="detail-table-wrap">
+        <table class="detail-table">
+          <thead><tr><th>Fecha</th><th>Factura</th><th>Cliente</th><th>Medio de pago</th><th>Total</th></tr></thead>
+          <tbody id="cashDetailSales"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="detail-section">
+      <h3>Movimientos manuales</h3>
+      <div class="detail-table-wrap">
+        <table class="detail-table">
+          <thead><tr><th>Fecha</th><th>Tipo</th><th>Referencia</th><th>Usuario</th><th>Valor</th></tr></thead>
+          <tbody id="cashDetailMovements"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="detail-section">
+      <h3>Resumen por medio de pago</h3>
+      <div id="cashDetailPayments" class="payment-list"></div>
+    </section>
   </div>
 </div>
 
@@ -300,9 +353,10 @@ function renderHistory(targetId){
         <td>${money(row.expected_amount)}</td>
         <td>${money(row.closing_counted)}</td>
         <td class="${Math.abs(diff) < 0.01 ? 'diff-ok' : 'diff-bad'}">${money(diff)}</td>
+        <td><button class="eye-btn" title="Ver detalle del cierre" onclick="viewCashDetail(${Number(row.id)})">👁️</button></td>
       </tr>
     `;
-  }).join('') || '<tr><td colspan="6"><div class="empty">Todavía no hay cierres de caja.</div></td></tr>';
+  }).join('') || '<tr><td colspan="7"><div class="empty">Todavía no hay cierres de caja.</div></td></tr>';
 }
 
 async function openCash(){
@@ -404,6 +458,82 @@ async function closeCash(){
   }else{
     showToast(res?.error || 'No se pudo cerrar la caja');
   }
+}
+
+
+async function viewCashDetail(id){
+  const data = await Malu.api(`/api/cash/sessions/${id}`);
+
+  if(data?.ok === false){
+    return showToast(data.error || 'No se pudo consultar el cierre');
+  }
+
+  const session = data.session || {};
+  const metrics = data.metrics || {};
+  const movements = Array.isArray(data.movements) ? data.movements : [];
+  const sales = Array.isArray(data.sales) ? data.sales : [];
+  const diff = Number(session.difference || 0);
+
+  el('cashDetailTitle').textContent = `Cierre de caja #${session.id}`;
+  el('cashDetailSubtitle').textContent =
+    `${formatDate(session.opened_at)} → ${formatDate(session.closed_at)} · Abrió: ${session.opened_by_name || '—'} · Cerró: ${session.closed_by_name || '—'}`;
+
+  el('cashDetailSummary').innerHTML = `
+    <div class="detail-metric"><small>Saldo inicial</small><strong>${money(metrics.opening_amount)}</strong></div>
+    <div class="detail-metric"><small>Ventas en efectivo</small><strong>${money(metrics.cash_sales)}</strong></div>
+    <div class="detail-metric"><small>Ingresos manuales</small><strong>${money(metrics.income)}</strong></div>
+    <div class="detail-metric"><small>Egresos manuales</small><strong>${money(metrics.expense)}</strong></div>
+    <div class="detail-metric"><small>Total vendido</small><strong>${money(metrics.total_sales)}</strong></div>
+    <div class="detail-metric"><small>Efectivo esperado</small><strong>${money(session.expected_amount ?? metrics.expected_amount)}</strong></div>
+    <div class="detail-metric"><small>Efectivo contado</small><strong>${money(session.closing_counted)}</strong></div>
+    <div class="detail-metric"><small>Diferencia</small><strong class="${Math.abs(diff)<0.01?'positive':(diff<0?'negative':'neutral')}">${money(diff)}</strong></div>
+  `;
+
+  const notes = [];
+  if(session.opening_notes){
+    notes.push(`<div class="detail-note"><strong>Observación de apertura:</strong><br>${escapeHtml(session.opening_notes)}</div>`);
+  }
+  if(session.closing_notes){
+    notes.push(`<div class="detail-note" style="margin-top:8px"><strong>Observación de cierre:</strong><br>${escapeHtml(session.closing_notes)}</div>`);
+  }
+  el('cashDetailNotes').innerHTML = notes.join('');
+
+  el('cashDetailSales').innerHTML = sales.map(sale => `
+    <tr>
+      <td>${escapeHtml(formatDate(sale.created_at))}</td>
+      <td>${escapeHtml(sale.invoice_number || ('#'+sale.id))}</td>
+      <td>${escapeHtml(sale.customer_name || 'Cliente ocasional')}</td>
+      <td>${escapeHtml(sale.payment_method || '—')}</td>
+      <td><strong>${money(sale.total)}</strong></td>
+    </tr>
+  `).join('') || '<tr><td colspan="5"><div class="empty">No hubo ventas durante este turno.</div></td></tr>';
+
+  el('cashDetailMovements').innerHTML = movements.map(movement => {
+    const income = movement.type === 'INCOME';
+    return `
+      <tr>
+        <td>${escapeHtml(formatDate(movement.created_at))}</td>
+        <td>${income ? 'Ingreso' : 'Egreso'}</td>
+        <td>${escapeHtml(movement.reference || movement.notes || '—')}</td>
+        <td>${escapeHtml(movement.user_name || '—')}</td>
+        <td class="${income ? 'positive' : 'negative'}">${income ? '+' : '−'} ${money(movement.amount)}</td>
+      </tr>
+    `;
+  }).join('') || '<tr><td colspan="5"><div class="empty">No hubo movimientos manuales.</div></td></tr>';
+
+  const breakdown = Array.isArray(metrics.payment_breakdown) ? metrics.payment_breakdown : [];
+  el('cashDetailPayments').innerHTML = breakdown.map(row => `
+    <div class="payment-row">
+      <span>${escapeHtml(row.payment_method || 'Sin definir')} <small class="muted">(${row.sales_count} venta${Number(row.sales_count)===1?'':'s'})</small></span>
+      <strong>${money(row.total)}</strong>
+    </div>
+  `).join('') || '<div class="empty">Sin ventas registradas.</div>';
+
+  el('cashDetailModal').classList.add('show');
+}
+
+function closeCashDetail(){
+  el('cashDetailModal').classList.remove('show');
 }
 
 loadAll();

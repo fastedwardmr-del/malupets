@@ -5,220 +5,263 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Malupets | Dashboard</title>
   <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .dash-hero{border-radius:22px;padding:21px;background:linear-gradient(135deg,#eef9ff,#f8fbff);border:1px solid #dceef9;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;gap:18px}
+    .dash-hero h2{margin:0 0 6px;color:#0f172a}.dash-hero p{margin:0;color:#64748b;font-size:13px}.role-pill{background:#fff;border:1px solid #dceaf5;border-radius:999px;padding:7px 11px;font-size:11px;font-weight:800;color:#0879b6}
+    .real-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin-bottom:18px}.real-stat{background:#fff;border:1px solid #e7eef6;border-radius:18px;padding:15px}.real-stat small{display:block;color:#64748b;font-size:11px;margin-bottom:5px}.real-stat strong{font-size:23px;color:#0f172a}.real-stat span{font-size:10px;color:#94a3b8;display:block;margin-top:4px}
+    .dash-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(280px,.75fr);gap:18px;align-items:start}.section-title{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.section-title h3{margin:0}.section-title p{margin:4px 0 0;color:#64748b;font-size:11px}
+    .work-list{display:flex;flex-direction:column;gap:8px}.work-row{display:grid;grid-template-columns:68px minmax(0,1fr) auto;gap:10px;align-items:center;border:1px solid #edf2f7;border-radius:14px;padding:10px}.work-time strong{display:block;font-size:15px}.work-time small{color:#64748b;font-size:10px}.work-main strong{font-size:13px}.work-main span{display:block;color:#64748b;font-size:10px;margin-top:3px}.badge{font-size:10px;border-radius:999px;padding:5px 8px;background:#f1f5f9;color:#475569;font-weight:800}
+    .badge.CONFIRMED{background:#eff6ff;color:#1d4ed8}.badge.IN_PROGRESS{background:#fffbeb;color:#b45309}.badge.COMPLETED{background:#ecfdf5;color:#047857}.badge.CANCELLED{background:#fff1f2;color:#be123c}
+    .mini-list{display:flex;flex-direction:column;gap:8px}.mini-row{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid #edf2f7;padding:9px 0;font-size:12px}.mini-row:last-child{border-bottom:0}.empty{padding:28px 12px;text-align:center;color:#64748b;font-size:12px}.cash-open{background:#ecfdf5;color:#047857;padding:7px 9px;border-radius:10px;font-size:11px;font-weight:800}.cash-closed{background:#f1f5f9;color:#64748b;padding:7px 9px;border-radius:10px;font-size:11px;font-weight:800}
+    .spa-callout{border:1px solid #dbeafe;background:#f8fbff;border-radius:16px;padding:14px;margin-top:12px}.spa-callout strong{display:block;margin-bottom:4px}.spa-callout p{font-size:11px;color:#64748b;margin:0}
+    @media(max-width:1050px){.real-stats{grid-template-columns:repeat(2,1fr)}.dash-grid{grid-template-columns:1fr}}
+    @media(max-width:650px){.real-stats{grid-template-columns:1fr 1fr}.dash-hero{align-items:flex-start;flex-direction:column}.work-row{grid-template-columns:58px 1fr}.work-row>.badge{grid-column:2;justify-self:start}}
+  </style>
 </head>
 <body>
-  <div class="app">
-    <aside class="sidebar">
-      <a class="brand" href="dashboard.html" aria-label="Malupets">
-        <span class="malu">Malu</span><span class="dog-dot">🐶</span><span class="pets">Pets</span>
-      </a>
-      <nav class="nav">
-        <a class="active" href="dashboard.html">🏠 Dashboard</a>
-        <a href="pos.html">🧾 POS - Facturación</a>
-        <a href="clientes.html">👤 Clientes</a>
-        <a href="mascotas.html">🐾 Mascotas</a>
-        <a href="inventario.html">📦 Inventario</a>
-        <a href="agenda.html">📅 Agenda</a>
-        <a href="caja.html">💵 Caja</a>
-        <a href="reportes.html">📊 Reportes</a>
-        <a href="configuracion.html">⚙️ Configuración</a>
-      </nav>
-      <div class="sidebar-footer">
-        <div class="mini-avatar">A</div>
-        <div>
-          <small>Sesión demo</small>
-          <strong>Administrador</strong>
-        </div>
+<div class="app">
+  <aside class="sidebar">
+    <a class="brand" href="dashboard.html" aria-label="Malupets">
+      <span class="malu">Malu</span><span class="dog-dot">🐶</span><span class="pets">Pets</span>
+    </a>
+    <nav class="nav">
+      <a class="active" href="dashboard.html">Dashboard</a>
+      <a href="pos.html">POS - Facturación</a>
+      <a href="ventas.html">Ventas / Facturas</a>
+      <a href="clientes.html">Clientes</a>
+      <a href="mascotas.html">Mascotas</a>
+      <a href="inventario.html">Inventario</a>
+      <a href="agenda.html">Agenda</a>
+      <a href="caja.html">Caja</a>
+      <a href="reportes.html">Reportes</a>
+      <a href="configuracion.html">Configuración</a>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="title">
+        <h1>Dashboard</h1>
+        <p id="dashboardIntro">Cargando información...</p>
       </div>
-    </aside>
+      <button class="btn btn-soft" onclick="loadDashboard()">Actualizar</button>
+    </div>
 
-    <main class="main dashboard-page">
-      <header class="topbar dashboard-topbar">
-        <div class="title">
-          <span class="eyebrow">Sprint 1 · Panel inicial</span>
-          <h1>¡Bienvenido a Malupets! 👋</h1>
-          <p>Resumen operativo para ventas, clientes, mascotas, agenda y caja.</p>
-        </div>
-        <div class="top-actions">
-          <button class="btn btn-soft" id="apiStatus">API: verificando...</button>
-          <a class="btn btn-blue" href="pos.html">Nueva venta</a>
-        </div>
-      </header>
+    <section class="dash-hero">
+      <div>
+        <h2 id="welcomeTitle">Bienvenido</h2>
+        <p id="welcomeText">Preparando tu panel de trabajo.</p>
+      </div>
+      <span id="rolePill" class="role-pill">—</span>
+    </section>
 
-      <section class="hero hero-dashboard">
+    <div id="stats" class="real-stats"></div>
+
+    <section id="spaDashboard" style="display:none">
+      <div class="dash-grid">
+        <div class="card">
+          <div class="section-title">
+            <div>
+              <h3>Mis citas de hoy</h3>
+              <p>Solo las citas que tienes asignadas.</p>
+            </div>
+            <a href="agenda.html">Ir a mi agenda</a>
+          </div>
+          <div id="spaTodayList" class="work-list"></div>
+        </div>
+
+        <aside class="card">
+          <div class="section-title">
+            <div>
+              <h3>Próximas asignaciones</h3>
+              <p>Tu trabajo pendiente.</p>
+            </div>
+          </div>
+          <div id="spaUpcoming" class="mini-list"></div>
+          <div class="spa-callout">
+            <strong>Panel personal</strong>
+            <p>Este dashboard usa únicamente las citas asignadas a tu usuario. No muestra ventas, caja ni información administrativa.</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="generalDashboard" style="display:none">
+      <div class="dash-grid">
         <div>
-          <span class="pill">Profesional · Pet friendly · POS</span>
-          <h2>Cuidamos la operación para que ellos cuiden a las mascotas 💙</h2>
-          <p>Este tablero será el centro de control diario para recepción, caja y administración.</p>
-          <div class="actions">
-            <a class="btn btn-blue" href="clientes.html">+ Crear cliente</a>
-            <a class="btn btn-yellow" href="agenda.html">+ Agendar cita</a>
-            <a class="btn btn-dark" href="inventario.html">Ver inventario</a>
+          <div id="appointmentsCard" class="card" style="margin-bottom:18px">
+            <div class="section-title">
+              <div><h3>Agenda de hoy</h3><p>Información real registrada en Agenda.</p></div>
+              <a href="agenda.html">Ver agenda</a>
+            </div>
+            <div id="generalAppointments" class="work-list"></div>
+          </div>
+
+          <div id="salesCard" class="card">
+            <div class="section-title">
+              <div><h3>Ventas recientes</h3><p>Últimas ventas registradas en el POS.</p></div>
+              <a href="ventas.html">Ver ventas</a>
+            </div>
+            <div id="recentSales" class="mini-list"></div>
           </div>
         </div>
-        <div class="hero-pets" aria-hidden="true">
-          <span>🐶</span><span>🐱</span><span>🎀</span>
-        </div>
-      </section>
 
-      <section class="stats dashboard-stats">
-        <article class="card stat stat-blue">
-          <div class="stat-icon">💰</div>
-          <div>
-            <div class="label">Ventas del día</div>
-            <div class="value" id="salesToday">$ 0</div>
-            <small>Demo hasta conectar POS</small>
+        <aside>
+          <div id="cashCard" class="card">
+            <div class="section-title"><div><h3>Estado de caja</h3><p>Estado real del turno.</p></div></div>
+            <div id="cashState"></div>
           </div>
-        </article>
-        <article class="card stat stat-yellow">
-          <div class="stat-icon">📅</div>
-          <div>
-            <div class="label">Citas de hoy</div>
-            <div class="value" id="appointmentsToday">4</div>
-            <small>2 confirmadas · 1 pendiente</small>
-          </div>
-        </article>
-        <article class="card stat stat-green">
-          <div class="stat-icon">👥</div>
-          <div>
-            <div class="label">Clientes activos</div>
-            <div class="value" id="clientesCount">...</div>
-            <small>Conectado a D1</small>
-          </div>
-        </article>
-        <article class="card stat stat-pink">
-          <div class="stat-icon">🐾</div>
-          <div>
-            <div class="label">Mascotas registradas</div>
-            <div class="value" id="petsCount">...</div>
-            <small>Conectado a D1</small>
-          </div>
-        </article>
-      </section>
 
-      <section class="dashboard-grid">
-        <article class="card panel-large">
-          <div class="section-head">
-            <div>
-              <h3>Ventas recientes</h3>
-              <p>Vista demo mientras conectamos el POS.</p>
-            </div>
-            <a href="pos.html">Ir al POS</a>
+          <div id="stockCard" class="card" style="margin-top:18px">
+            <div class="section-title"><div><h3>Stock bajo</h3><p>Productos con 5 unidades o menos.</p></div></div>
+            <div id="lowStock" class="mini-list"></div>
           </div>
-          <div class="list-clean">
-            <div class="list-row"><span class="badge blue">#0001</span><strong>Venta mostrador</strong><span>$ 120.000</span></div>
-            <div class="list-row"><span class="badge yellow">#0002</span><strong>Baño y peluquería</strong><span>$ 80.000</span></div>
-            <div class="list-row"><span class="badge pink">#0003</span><strong>Consulta veterinaria</strong><span>$ 60.000</span></div>
-          </div>
-        </article>
+        </aside>
+      </div>
+    </section>
+  </main>
+</div>
 
-        <article class="card">
-          <div class="section-head">
-            <div>
-              <h3>Estado de caja</h3>
-              <p>Control diario de apertura y cierre.</p>
-            </div>
-            <span class="status open">Abierta</span>
-          </div>
-          <div class="cash-box">
-            <small>Total esperado</small>
-            <strong>$ 260.000</strong>
-            <div class="progress"><span style="width:68%"></span></div>
-          </div>
-          <div class="actions compact">
-            <a class="btn btn-green" href="caja.html">Ver caja</a>
-            <button class="btn btn-soft" data-demo="Cierre de caja disponible cuando conectemos el módulo de caja.">Cerrar caja</button>
-          </div>
-        </article>
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
+<script>
+const STATUS_LABELS = {
+  SCHEDULED:'Agendada',
+  CONFIRMED:'Confirmada',
+  IN_PROGRESS:'En atención',
+  COMPLETED:'Completada',
+  CANCELLED:'Cancelada',
+  NO_SHOW:'No asistió'
+};
 
-        <article class="card panel-large">
-          <div class="section-head">
-            <div>
-              <h3>Agenda de hoy</h3>
-              <p>Próximas citas y servicios del spa.</p>
-            </div>
-            <a href="agenda.html">Ver agenda</a>
-          </div>
-          <div class="timeline">
-            <div class="time-item"><time>09:00</time><div><strong>Baño y peluquería</strong><small>Max · María López</small></div><span class="status open">Confirmada</span></div>
-            <div class="time-item"><time>10:30</time><div><strong>Consulta veterinaria</strong><small>Luna · Carlos Ruiz</small></div><span class="status open">Confirmada</span></div>
-            <div class="time-item"><time>14:00</time><div><strong>Vacunación</strong><small>Rocky · Ana Torres</small></div><span class="status pending">Pendiente</span></div>
-          </div>
-        </article>
+function el(id){ return document.getElementById(id); }
 
-        <article class="card">
-          <div class="section-head">
-            <div>
-              <h3>Alertas</h3>
-              <p>Pendientes importantes.</p>
-            </div>
-          </div>
-          <div class="alerts">
-            <div class="alert yellow">📦 3 productos próximos a agotarse</div>
-            <div class="alert blue">🧾 Impresora POS pendiente por configurar</div>
-            <div class="alert pink">💵 Cajón monedero pendiente por prueba</div>
-          </div>
-        </article>
+function money(value){
+  return new Intl.NumberFormat('es-CO',{
+    style:'currency',currency:'COP',maximumFractionDigits:0
+  }).format(Number(value||0));
+}
 
-        <article class="card panel-large">
-          <div class="section-head">
-            <div>
-              <h3>Rendimiento semanal</h3>
-              <p>Gráfico visual demo, luego saldrá desde reportes.</p>
-            </div>
-            <a href="reportes.html">Reportes</a>
-          </div>
-          <div class="bar-chart" aria-label="Rendimiento semanal demo">
-            <span style="height:35%"><b>L</b></span>
-            <span style="height:55%"><b>M</b></span>
-            <span style="height:42%"><b>M</b></span>
-            <span style="height:80%"><b>J</b></span>
-            <span style="height:66%"><b>V</b></span>
-            <span style="height:90%"><b>S</b></span>
-            <span style="height:48%"><b>D</b></span>
-          </div>
-        </article>
+function escapeHtml(value){
+  return String(value??'').replace(/[&<>'"]/g,c=>({
+    '&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'
+  })[c]);
+}
 
-        <article class="card">
-          <div class="section-head">
-            <div>
-              <h3>Accesos rápidos</h3>
-              <p>Operación del día.</p>
-            </div>
-          </div>
-          <div class="quick-grid">
-            <a href="clientes.html">👤 Cliente</a>
-            <a href="mascotas.html">🐾 Mascota</a>
-            <a href="pos.html">🧾 Facturar</a>
-            <a href="agenda.html">📅 Cita</a>
-          </div>
-        </article>
-      </section>
-    </main>
-  </div>
+function timeOnly(value){ return String(value||'').slice(11,16); }
 
-  <script src="js/config.js"></script>
-  <script src="js/app.js"></script>
-  <script>
-    async function loadDashboard(){
-      try{
-        const [health, customers, pets] = await Promise.all([
-          Malu.api('/api/health'),
-          Malu.api('/api/customers'),
-          Malu.api('/api/pets')
-        ]);
-        document.getElementById('apiStatus').textContent = health?.ok ? 'API: conectada' : 'API: revisar';
-        document.getElementById('apiStatus').className = health?.ok ? 'btn btn-soft ok' : 'btn btn-soft warn';
-        document.getElementById('clientesCount').textContent = Array.isArray(customers) ? customers.length : 0;
-        document.getElementById('petsCount').textContent = Array.isArray(pets) ? pets.length : 0;
-      }catch(error){
-        document.getElementById('apiStatus').textContent = 'API: sin conexión';
-        document.getElementById('apiStatus').className = 'btn btn-soft warn';
-        document.getElementById('clientesCount').textContent = '0';
-        document.getElementById('petsCount').textContent = '0';
-      }
-    }
-    loadDashboard();
-  </script>
+function dateShort(value){
+  const text=String(value||'').slice(0,10);
+  if(!text) return '—';
+  const [y,m,d]=text.split('-').map(Number);
+  return new Date(y,m-1,d).toLocaleDateString('es-CO',{day:'numeric',month:'short'});
+}
+
+function statCard(label,value,detail=''){
+  return `<div class="real-stat"><small>${escapeHtml(label)}</small><strong>${value}</strong>${detail?`<span>${escapeHtml(detail)}</span>`:''}</div>`;
+}
+
+function appointmentRow(a){
+  return `
+    <div class="work-row">
+      <div class="work-time">
+        <strong>${escapeHtml(timeOnly(a.start_at))}</strong>
+        <small>${escapeHtml(String(a.end_at||'').slice(11,16))}</small>
+      </div>
+      <div class="work-main">
+        <strong>${escapeHtml(a.pet_name||'Mascota')} · ${escapeHtml(a.service_name||'Servicio')}</strong>
+        <span>${escapeHtml(a.customer_name||'')}${a.assigned_user_name?' · '+escapeHtml(a.assigned_user_name):''}</span>
+      </div>
+      <span class="badge ${escapeHtml(a.status||'')}">${escapeHtml(STATUS_LABELS[a.status]||a.status||'')}</span>
+    </div>`;
+}
+
+function renderSpa(data){
+  const s=data.stats||{};
+  el('stats').innerHTML =
+    statCard('Citas asignadas hoy',s.assigned_today||0,'Tu agenda de hoy')+
+    statCard('Por atender',s.pending_today||0,'Agendadas o confirmadas')+
+    statCard('En atención',s.in_progress_today||0,'Servicios en curso')+
+    statCard('Completadas',s.completed_today||0,'Finalizadas hoy');
+
+  el('spaTodayList').innerHTML=(data.appointments_today||[]).map(appointmentRow).join('') ||
+    '<div class="empty">No tienes citas asignadas para hoy.</div>';
+
+  el('spaUpcoming').innerHTML=(data.upcoming||[]).map(a=>`
+    <div class="mini-row">
+      <span><strong>${escapeHtml(a.pet_name)}</strong><br><small>${escapeHtml(a.service_name)} · ${dateShort(a.start_at)} ${timeOnly(a.start_at)}</small></span>
+      <span class="badge ${escapeHtml(a.status)}">${escapeHtml(STATUS_LABELS[a.status]||a.status)}</span>
+    </div>
+  `).join('') || '<div class="empty">No tienes próximas citas pendientes.</div>';
+
+  el('spaDashboard').style.display='block';
+  el('generalDashboard').style.display='none';
+}
+
+function renderGeneral(data){
+  const s=data.stats||{};
+  const cards=[];
+
+  if(s.sales_today_total!==undefined) cards.push(statCard('Ventas de hoy',money(s.sales_today_total),`${s.sales_today_count||0} venta(s)`));
+  if(s.appointments_today!==undefined) cards.push(statCard('Citas de hoy',s.appointments_today,'Agenda'));
+  if(s.customers!==undefined) cards.push(statCard('Clientes activos',s.customers,'Registrados'));
+  if(s.pets!==undefined) cards.push(statCard('Mascotas activas',s.pets,'Registradas'));
+  if(s.low_stock!==undefined && cards.length<4) cards.push(statCard('Stock bajo',s.low_stock,'Productos'));
+
+  el('stats').innerHTML=cards.join('');
+
+  const appointments=data.appointments_today||[];
+  el('appointmentsCard').style.display=appointments.length || Malu.hasPermission('agenda') ? 'block':'none';
+  el('generalAppointments').innerHTML=appointments.map(appointmentRow).join('') ||
+    '<div class="empty">No hay citas registradas para hoy.</div>';
+
+  const sales=data.recent_sales||[];
+  el('salesCard').style.display=Malu.hasPermission('sales')||Malu.hasPermission('pos')?'block':'none';
+  el('recentSales').innerHTML=sales.map(v=>`
+    <div class="mini-row">
+      <span><strong>${escapeHtml(v.invoice_number||('#'+v.id))}</strong><br><small>${escapeHtml(v.customer_name||'Cliente ocasional')} · ${escapeHtml(v.payment_method||'')}</small></span>
+      <strong>${money(v.total)}</strong>
+    </div>
+  `).join('') || '<div class="empty">No hay ventas registradas.</div>';
+
+  el('cashCard').style.display=Malu.hasPermission('cash')?'block':'none';
+  el('cashState').innerHTML=data.cash
+    ? `<div class="cash-open">● Caja abierta</div><p style="font-size:12px;color:#64748b;margin:10px 0 0">Abierta por ${escapeHtml(data.cash.opened_by_name||'Usuario')}<br>Saldo inicial: <strong>${money(data.cash.opening_amount)}</strong></p>`
+    : '<div class="cash-closed">Caja cerrada</div>';
+
+  el('stockCard').style.display=Malu.hasPermission('inventory')?'block':'none';
+  el('lowStock').innerHTML=(data.low_stock||[]).map(p=>`
+    <div class="mini-row"><span>${escapeHtml(p.name)}<br><small>${escapeHtml(p.sku||'')}</small></span><strong>${escapeHtml(p.stock)} ${escapeHtml(p.unit||'')}</strong></div>
+  `).join('') || '<div class="empty">Sin alertas de stock bajo.</div>';
+
+  el('spaDashboard').style.display='none';
+  el('generalDashboard').style.display='block';
+}
+
+async function loadDashboard(){
+  const data=await Malu.api('/api/dashboard');
+
+  if(data?.ok===false){
+    el('dashboardIntro').textContent=data.error||'No se pudo cargar el dashboard';
+    return;
+  }
+
+  const user=data.user||Malu.getStoredUser()||{};
+  el('welcomeTitle').textContent=`Hola, ${user.full_name||'Usuario'} 👋`;
+  el('rolePill').textContent=user.role||'';
+
+  if(data.mode==='SPA'){
+    el('dashboardIntro').textContent='Tu jornada y citas asignadas.';
+    el('welcomeText').textContent='Aquí ves únicamente el trabajo que tienes asignado en Agenda.';
+    renderSpa(data);
+  }else{
+    el('dashboardIntro').textContent='Resumen real de la operación.';
+    el('welcomeText').textContent='Información actual de Malupets según tus permisos.';
+    renderGeneral(data);
+  }
+}
+
+loadDashboard();
+</script>
 </body>
 </html>

@@ -1,1 +1,461 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Reportes</title><link rel="stylesheet" href="css/styles.css"></head><body><div class="app"><aside class="sidebar"><div class="brand"><span class="malu">Malu</span><span class="dog-dot">🐶</span><span class="pets">Pets</span></div><nav class="nav"><a href="dashboard.html">Dashboard</a><a href="pos.html">POS - Facturación</a><a href="clientes.html">Clientes</a><a href="mascotas.html">Mascotas</a><a href="inventario.html">Inventario</a><a href="agenda.html">Agenda</a><a href="caja.html">Caja</a><a href="reportes.html">Reportes</a><a href="configuracion.html">Configuración</a></nav></aside><main class="main"><div class="topbar"><div class="title"><h1>Reportes</h1><p>Módulo preparado para la siguiente fase.</p></div></div><section class="card"><span class="pill">Malupets v0.1.0</span><h2>Reportes</h2><p>Esta pantalla queda lista en diseño para conectar lógica, tablas y endpoints.</p><div class="actions"><button class="btn btn-green">Finalizar venta</button><button class="btn btn-dark">Imprimir</button><button class="btn btn-soft">Abrir cajón</button></div></section></main></div><script src="js/config.js"></script><script src="js/app.js"></script></body></html>
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Reportes | Malupets</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .filters{display:grid;grid-template-columns:170px 170px auto 1fr;gap:9px;align-items:end}
+    .filter-group label{display:block;font-size:10px;font-weight:800;color:#64748b;margin-bottom:5px;text-transform:uppercase}
+    .quick-periods{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+    .kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin:16px 0}
+    .kpi{background:#fff;border:1px solid #e7eef6;border-radius:17px;padding:13px}.kpi small{display:block;color:#64748b;font-size:10px;margin-bottom:5px}.kpi strong{display:block;font-size:20px;color:#0f172a}.kpi span{display:block;color:#94a3b8;font-size:9px;margin-top:3px}
+    .report-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:18px}.wide{grid-column:1/-1}
+    .section-head{display:flex;justify-content:space-between;gap:12px;align-items:start;margin-bottom:12px}.section-head h3{margin:0}.section-head p{margin:4px 0 0;color:#64748b;font-size:10px}
+    .bars{display:flex;flex-direction:column;gap:9px}.bar-row{display:grid;grid-template-columns:130px 1fr 100px;gap:9px;align-items:center;font-size:11px}.bar-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bar-track{height:10px;background:#edf2f7;border-radius:999px;overflow:hidden}.bar-fill{height:100%;background:#20a7e8;border-radius:999px;min-width:2px}.bar-value{text-align:right;font-weight:800;color:#0f172a}
+    .table-wrap{overflow:auto}.report-table{width:100%;border-collapse:collapse;min-width:650px}.report-table th,.report-table td{text-align:left;padding:9px 7px;border-bottom:1px solid #edf2f7;font-size:10px}.report-table th{font-size:9px;color:#64748b;text-transform:uppercase}.report-table td:last-child,.report-table th:last-child{text-align:right}
+    .export-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}.export-card{border:1px solid #e6edf5;border-radius:15px;padding:13px;background:#fff}.export-card strong{display:block;font-size:12px;margin-bottom:4px}.export-card p{font-size:9px;color:#64748b;min-height:30px}.export-card button{width:100%;margin-top:7px}
+    .inventory-callout{background:#eef9ff;border:1px solid #ccecff;border-radius:14px;padding:12px;margin-bottom:12px;font-size:10px;color:#075985}
+    .empty{text-align:center;padding:24px;color:#64748b;font-size:11px}.positive{color:#047857;font-weight:800}.negative{color:#be123c;font-weight:800}
+    .toast{position:fixed;right:22px;bottom:22px;background:#071124;color:#fff;padding:14px 18px;border-radius:15px;display:none;z-index:60}.toast.show{display:block}
+    @media(max-width:1200px){.kpis{grid-template-columns:repeat(3,1fr)}.export-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:900px){.filters{grid-template-columns:1fr 1fr}.quick-periods{grid-column:1/-1;justify-content:flex-start}.report-grid{grid-template-columns:1fr}.wide{grid-column:auto}}
+    @media(max-width:600px){.kpis{grid-template-columns:1fr 1fr}.filters{grid-template-columns:1fr}.quick-periods{grid-column:auto}.export-grid{grid-template-columns:1fr}.bar-row{grid-template-columns:100px 1fr 80px}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><span class="malu">Malu</span><span class="dog-dot">🐶</span><span class="pets">Pets</span></div>
+    <nav class="nav">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="pos.html">POS - Facturación</a>
+      <a href="ventas.html">Ventas / Facturas</a>
+      <a href="clientes.html">Clientes</a>
+      <a href="mascotas.html">Mascotas</a>
+      <a href="inventario.html">Inventario</a>
+      <a href="agenda.html">Agenda</a>
+      <a href="caja.html">Caja</a>
+      <a class="active" href="reportes.html">Reportes</a>
+      <a href="configuracion.html">Configuración</a>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="title">
+        <h1>Reportes</h1>
+        <p>Ventas, inventario, caja y operación SPA en un solo lugar.</p>
+      </div>
+      <button class="btn btn-soft" onclick="loadReports()">Actualizar</button>
+    </div>
+
+    <section class="card">
+      <div class="filters">
+        <div class="filter-group"><label>Desde</label><input id="dateFrom" class="input" type="date"></div>
+        <div class="filter-group"><label>Hasta</label><input id="dateTo" class="input" type="date"></div>
+        <button class="btn btn-blue" onclick="loadReports()">Aplicar período</button>
+        <div class="quick-periods">
+          <button class="btn btn-soft" onclick="setPeriod('today')">Hoy</button>
+          <button class="btn btn-soft" onclick="setPeriod('week')">7 días</button>
+          <button class="btn btn-soft" onclick="setPeriod('month')">Este mes</button>
+          <button class="btn btn-soft" onclick="setPeriod('30')">30 días</button>
+        </div>
+      </div>
+    </section>
+
+    <div id="kpis" class="kpis"></div>
+
+    <section class="card">
+      <div class="section-head">
+        <div><h3>Exportaciones Excel</h3><p>Archivos listos para análisis, respaldo o actualización masiva.</p></div>
+      </div>
+      <div class="inventory-callout">
+        <strong>Inventario actual:</strong> la descarga usa exactamente las columnas de la plantilla de carga masiva
+        (<b>sku, name, category, description, cost_price, sale_price, stock, unit</b>).
+        Puedes editar el archivo y volver a importarlo desde Inventario.
+      </div>
+      <div class="export-grid">
+        <div class="export-card"><strong>Inventario actual</strong><p>Todos los productos actuales en formato reimportable.</p><button class="btn btn-green" onclick="exportInventory()">⬇ Excel inventario</button></div>
+        <div class="export-card"><strong>Ventas</strong><p>Facturas del período con cliente, pago y total.</p><button class="btn btn-soft" onclick="exportSales()">⬇ Excel ventas</button></div>
+        <div class="export-card"><strong>Caja</strong><p>Cierres y movimientos manuales del período.</p><button class="btn btn-soft" onclick="exportCash()">⬇ Excel caja</button></div>
+        <div class="export-card"><strong>Agenda / SPA</strong><p>Citas, servicios, estados y responsables.</p><button class="btn btn-soft" onclick="exportAgenda()">⬇ Excel agenda</button></div>
+        <div class="export-card"><strong>Reporte completo</strong><p>Un solo libro Excel con varias hojas.</p><button class="btn btn-dark" onclick="exportAll()">⬇ Exportar todo</button></div>
+      </div>
+    </section>
+
+    <div class="report-grid">
+      <section class="card">
+        <div class="section-head"><div><h3>Ventas por medio de pago</h3><p id="salesPeriodText"></p></div></div>
+        <div id="paymentBars" class="bars"></div>
+      </section>
+
+      <section class="card">
+        <div class="section-head"><div><h3>Productos más vendidos</h3><p>Ranking por unidades vendidas.</p></div></div>
+        <div id="productBars" class="bars"></div>
+      </section>
+
+      <section class="card">
+        <div class="section-head"><div><h3>Operación SPA por servicio</h3><p>Citas y servicios completados.</p></div></div>
+        <div id="serviceBars" class="bars"></div>
+      </section>
+
+      <section class="card">
+        <div class="section-head"><div><h3>Desempeño por responsable</h3><p>Servicios asignados y completados.</p></div></div>
+        <div id="staffBars" class="bars"></div>
+      </section>
+
+      <section class="card wide">
+        <div class="section-head"><div><h3>Inventario actual</h3><p>Valor de inventario y alertas de stock.</p></div><button class="btn btn-green" onclick="exportInventory()">Exportar para actualizar</button></div>
+        <div class="table-wrap">
+          <table class="report-table">
+            <thead><tr><th>SKU</th><th>Producto</th><th>Categoría</th><th>Stock</th><th>Costo</th><th>Venta</th><th>Valor costo</th><th>Estado</th></tr></thead>
+            <tbody id="inventoryRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card wide">
+        <div class="section-head"><div><h3>Cierres de caja</h3><p>Diferencias y responsables del período.</p></div></div>
+        <div class="table-wrap">
+          <table class="report-table">
+            <thead><tr><th>Cierre</th><th>Abrió</th><th>Cerró</th><th>Inicial</th><th>Esperado</th><th>Contado</th><th>Diferencia</th></tr></thead>
+            <tbody id="cashRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card wide">
+        <div class="section-head"><div><h3>Citas / servicios</h3><p>Detalle de la operación de Agenda en el período seleccionado.</p></div></div>
+        <div class="table-wrap">
+          <table class="report-table">
+            <thead><tr><th>Fecha</th><th>Mascota</th><th>Cliente</th><th>Servicio</th><th>Responsable</th><th>Estado</th></tr></thead>
+            <tbody id="agendaRows"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
+<script>
+let reportData = null;
+
+const STATUS_LABELS = {
+  SCHEDULED:'Agendada',
+  CONFIRMED:'Confirmada',
+  IN_PROGRESS:'En atención',
+  COMPLETED:'Completada',
+  CANCELLED:'Cancelada',
+  NO_SHOW:'No asistió'
+};
+
+function el(id){ return document.getElementById(id); }
+function pad(n){ return String(n).padStart(2,'0'); }
+
+function localToday(){
+  const d=new Date();
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+
+function dateString(d){
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+
+function money(value){
+  return new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(Number(value||0));
+}
+
+function number(value){
+  return new Intl.NumberFormat('es-CO',{maximumFractionDigits:2}).format(Number(value||0));
+}
+
+function escapeHtml(value){
+  return String(value??'').replace(/[&<>'"]/g,c=>({
+    '&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'
+  })[c]);
+}
+
+function showToast(message){
+  el('toast').textContent=message;
+  el('toast').classList.add('show');
+  setTimeout(()=>el('toast').classList.remove('show'),2600);
+}
+
+function setPeriod(type){
+  const now=new Date();
+  let from=new Date(now);
+
+  if(type==='today'){
+    from=new Date(now);
+  }else if(type==='week'){
+    from.setDate(now.getDate()-6);
+  }else if(type==='30'){
+    from.setDate(now.getDate()-29);
+  }else{
+    from=new Date(now.getFullYear(),now.getMonth(),1);
+  }
+
+  el('dateFrom').value=dateString(from);
+  el('dateTo').value=dateString(now);
+  loadReports();
+}
+
+function kpi(label,value,detail=''){
+  return `<div class="kpi"><small>${escapeHtml(label)}</small><strong>${value}</strong>${detail?`<span>${escapeHtml(detail)}</span>`:''}</div>`;
+}
+
+function renderBars(targetId,rows,labelKey,valueKey,formatter=(v)=>number(v)){
+  const target=el(targetId);
+  const max=Math.max(0,...rows.map(r=>Number(r[valueKey]||0)));
+
+  target.innerHTML=rows.slice(0,10).map(row=>{
+    const value=Number(row[valueKey]||0);
+    const width=max>0?Math.max(2,(value/max)*100):0;
+    return `<div class="bar-row">
+      <div class="bar-label" title="${escapeHtml(row[labelKey])}">${escapeHtml(row[labelKey]||'—')}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${width}%"></div></div>
+      <div class="bar-value">${formatter(value)}</div>
+    </div>`;
+  }).join('') || '<div class="empty">Sin información para este período.</div>';
+}
+
+async function loadReports(){
+  const from=el('dateFrom').value;
+  const to=el('dateTo').value;
+  if(!from||!to) return showToast('Selecciona el período');
+
+  const data=await Malu.api(`/api/reports?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`);
+  if(data?.ok===false) return showToast(data.error||'No se pudieron cargar los reportes');
+
+  reportData=data;
+  renderReports();
+}
+
+function renderReports(){
+  if(!reportData) return;
+  const s=reportData.summary||{};
+  const sales=s.sales||{};
+  const inv=s.inventory||{};
+  const cash=s.cash||{};
+  const agenda=s.agenda||{};
+
+  el('kpis').innerHTML=
+    kpi('Ventas',money(sales.sales_total),`${sales.sales_count||0} ventas`)+
+    kpi('Ticket promedio',money(sales.average_ticket),'Promedio por venta')+
+    kpi('Efectivo',money(sales.cash_sales),'Ventas en efectivo')+
+    kpi('Inventario',money(inv.inventory_cost_value),`${inv.product_count||0} productos`)+
+    kpi('Servicios completados',agenda.completed_count||0,`${agenda.appointment_count||0} citas`)+
+    kpi('Diferencia de caja',money(cash.difference_total),`${cash.closure_count||0} cierres`);
+
+  el('salesPeriodText').textContent=`${reportData.period.from} a ${reportData.period.to}`;
+
+  renderBars('paymentBars',reportData.sales_by_payment||[],'payment_method','total',money);
+  renderBars('productBars',reportData.top_products||[],'product_name','quantity',number);
+  renderBars('serviceBars',reportData.agenda_by_service||[],'service_name','completed_count',number);
+  renderBars('staffBars',reportData.agenda_by_staff||[],'staff_name','completed_count',number);
+
+  el('inventoryRows').innerHTML=(reportData.inventory||[]).map(p=>{
+    const stock=Number(p.stock||0);
+    return `<tr>
+      <td>${escapeHtml(p.sku||'')}</td>
+      <td>${escapeHtml(p.name)}</td>
+      <td>${escapeHtml(p.category||'')}</td>
+      <td class="${stock<=5?'negative':''}">${number(stock)} ${escapeHtml(p.unit||'')}</td>
+      <td>${money(p.cost_price)}</td>
+      <td>${money(p.sale_price)}</td>
+      <td>${money(Number(p.stock||0)*Number(p.cost_price||0))}</td>
+      <td>${Number(p.is_active)===1?'Activo':'Inactivo'}</td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="8"><div class="empty">Sin productos.</div></td></tr>';
+
+  el('cashRows').innerHTML=(reportData.cash_closures||[]).map(c=>{
+    const diff=Number(c.difference||0);
+    return `<tr>
+      <td>${escapeHtml(c.closed_at_local||'—')}</td>
+      <td>${escapeHtml(c.opened_by_name||'—')}</td>
+      <td>${escapeHtml(c.closed_by_name||'—')}</td>
+      <td>${money(c.opening_amount)}</td>
+      <td>${money(c.expected_amount)}</td>
+      <td>${money(c.closing_counted)}</td>
+      <td class="${Math.abs(diff)<0.01?'positive':'negative'}">${money(diff)}</td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="7"><div class="empty">Sin cierres en este período.</div></td></tr>';
+
+  el('agendaRows').innerHTML=(reportData.appointment_detail||[]).map(a=>`
+    <tr>
+      <td>${escapeHtml(a.start_at||'')}</td>
+      <td>${escapeHtml(a.pet_name||'')}</td>
+      <td>${escapeHtml(a.customer_name||'')}</td>
+      <td>${escapeHtml(a.service_name||'')}</td>
+      <td>${escapeHtml(a.assigned_user_name||'')}</td>
+      <td>${escapeHtml(STATUS_LABELS[a.status]||a.status||'')}</td>
+    </tr>
+  `).join('')||'<tr><td colspan="6"><div class="empty">Sin citas en este período.</div></td></tr>';
+}
+
+function workbookName(prefix){
+  const from=reportData?.period?.from||el('dateFrom').value;
+  const to=reportData?.period?.to||el('dateTo').value;
+  return `${prefix}_${from}_${to}.xlsx`;
+}
+
+function sheetFromRows(rows,headers){
+  return XLSX.utils.json_to_sheet(rows,{header:headers});
+}
+
+function autoWidths(ws,widths){
+  ws['!cols']=widths.map(w=>({wch:w}));
+}
+
+function inventoryExportRows(){
+  return (reportData?.inventory||[]).map(p=>({
+    sku:p.sku||'',
+    name:p.name||'',
+    category:p.category||'',
+    description:p.description||'',
+    cost_price:Number(p.cost_price||0),
+    sale_price:Number(p.sale_price||0),
+    stock:Number(p.stock||0),
+    unit:p.unit||'UND'
+  }));
+}
+
+function exportInventory(){
+  if(!reportData) return showToast('Carga primero los reportes');
+  const headers=['sku','name','category','description','cost_price','sale_price','stock','unit'];
+  const ws=sheetFromRows(inventoryExportRows(),headers);
+  autoWidths(ws,[15,32,20,38,14,14,12,10]);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'inventario');
+  XLSX.writeFile(wb,'inventario_actual_malupets.xlsx');
+}
+
+function salesExportRows(){
+  return (reportData?.sales_detail||[]).map(s=>({
+    factura:s.invoice_number||'',
+    fecha:s.created_at_local||'',
+    cliente:s.customer_name||'',
+    medio_pago:s.payment_method||'',
+    items:Number(s.item_count||0),
+    subtotal:Number(s.subtotal||0),
+    impuestos:Number(s.tax||0),
+    total:Number(s.total||0),
+    notas:s.notes||''
+  }));
+}
+
+function cashClosureRows(){
+  return (reportData?.cash_closures||[]).map(c=>({
+    cierre_id:c.id,
+    apertura:c.opened_at_local||'',
+    cierre:c.closed_at_local||'',
+    abrio:c.opened_by_name||'',
+    cerro:c.closed_by_name||'',
+    saldo_inicial:Number(c.opening_amount||0),
+    esperado:Number(c.expected_amount||0),
+    contado:Number(c.closing_counted||0),
+    diferencia:Number(c.difference||0),
+    observacion_apertura:c.opening_notes||'',
+    observacion_cierre:c.closing_notes||''
+  }));
+}
+
+function cashMovementRows(){
+  return (reportData?.cash_movements||[]).map(m=>({
+    fecha:m.created_at_local||'',
+    caja_id:m.cash_session_id,
+    tipo:m.type==='INCOME'?'Ingreso':'Egreso',
+    valor:Number(m.amount||0),
+    referencia:m.reference||'',
+    notas:m.notes||'',
+    usuario:m.user_name||''
+  }));
+}
+
+function agendaExportRows(){
+  return (reportData?.appointment_detail||[]).map(a=>({
+    inicio:a.start_at||'',
+    fin:a.end_at||'',
+    cliente:a.customer_name||'',
+    mascota:a.pet_name||'',
+    especie:a.pet_species||'',
+    servicio:a.service_name||'',
+    responsable:a.assigned_user_name||'',
+    estado:STATUS_LABELS[a.status]||a.status||'',
+    observaciones:a.notes||''
+  }));
+}
+
+function exportSales(){
+  if(!reportData) return showToast('Carga primero los reportes');
+  const rows=salesExportRows();
+  const ws=XLSX.utils.json_to_sheet(rows);
+  autoWidths(ws,[20,20,28,18,10,14,14,14,35]);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'ventas');
+  XLSX.writeFile(wb,workbookName('ventas_malupets'));
+}
+
+function exportCash(){
+  if(!reportData) return showToast('Carga primero los reportes');
+  const wb=XLSX.utils.book_new();
+  const ws1=XLSX.utils.json_to_sheet(cashClosureRows());
+  autoWidths(ws1,[10,20,20,24,24,14,14,14,14,35,35]);
+  XLSX.utils.book_append_sheet(wb,ws1,'cierres');
+  const ws2=XLSX.utils.json_to_sheet(cashMovementRows());
+  autoWidths(ws2,[20,10,12,14,28,35,24]);
+  XLSX.utils.book_append_sheet(wb,ws2,'movimientos');
+  XLSX.writeFile(wb,workbookName('caja_malupets'));
+}
+
+function exportAgenda(){
+  if(!reportData) return showToast('Carga primero los reportes');
+  const ws=XLSX.utils.json_to_sheet(agendaExportRows());
+  autoWidths(ws,[20,20,28,20,16,25,25,16,40]);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'agenda');
+  XLSX.writeFile(wb,workbookName('agenda_malupets'));
+}
+
+function exportAll(){
+  if(!reportData) return showToast('Carga primero los reportes');
+  const wb=XLSX.utils.book_new();
+
+  const summaryRows=[
+    {indicador:'Ventas',valor:Number(reportData.summary?.sales?.sales_total||0)},
+    {indicador:'Cantidad de ventas',valor:Number(reportData.summary?.sales?.sales_count||0)},
+    {indicador:'Ticket promedio',valor:Number(reportData.summary?.sales?.average_ticket||0)},
+    {indicador:'Productos',valor:Number(reportData.summary?.inventory?.product_count||0)},
+    {indicador:'Valor inventario costo',valor:Number(reportData.summary?.inventory?.inventory_cost_value||0)},
+    {indicador:'Citas',valor:Number(reportData.summary?.agenda?.appointment_count||0)},
+    {indicador:'Servicios completados',valor:Number(reportData.summary?.agenda?.completed_count||0)},
+    {indicador:'Cierres de caja',valor:Number(reportData.summary?.cash?.closure_count||0)},
+    {indicador:'Diferencia total caja',valor:Number(reportData.summary?.cash?.difference_total||0)}
+  ];
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(summaryRows),'resumen');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(salesExportRows()),'ventas');
+  XLSX.utils.book_append_sheet(wb,sheetFromRows(inventoryExportRows(),['sku','name','category','description','cost_price','sale_price','stock','unit']),'inventario');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(cashClosureRows()),'cierres_caja');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(cashMovementRows()),'movimientos_caja');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(agendaExportRows()),'agenda');
+
+  XLSX.writeFile(wb,workbookName('reporte_completo_malupets'));
+}
+
+(function init(){
+  const today=localToday();
+  const now=new Date();
+  el('dateFrom').value=dateString(new Date(now.getFullYear(),now.getMonth(),1));
+  el('dateTo').value=today;
+  loadReports();
+})();
+</script>
+</body>
+</html>

@@ -15,6 +15,9 @@ import { listSales, getSale, createSale } from "./routes/sales.js";
 import { login, me, logout } from "./routes/auth.js";
 import { listUsers, createUser, updateUser } from "./routes/users.js";
 import { getCurrentCash, openCash, createCashMovement, closeCash, listCashHistory, getCashSession } from "./routes/cash.js";
+import { agendaBootstrap, listAppointments, createAppointment, updateAppointment, updateAppointmentStatus } from "./routes/agenda.js";
+import { getDashboard } from "./routes/dashboard.js";
+import { getReports } from "./routes/reports.js";
 import { requireAuth } from "./middleware/auth.js";
 
 async function authorize(request, env, permission = null) {
@@ -56,6 +59,22 @@ export default {
         const auth = await authorize(request, env);
         if (!auth.ok) return auth.response;
         return logout(request, env);
+      }
+
+
+      // Dashboard
+      if (path === "/api/dashboard" && method === "GET") {
+        const auth = await authorize(request, env, "dashboard");
+        if (!auth.ok) return auth.response;
+        return getDashboard(request, env, auth.user);
+      }
+
+
+      // Reportes
+      if (path === "/api/reports" && method === "GET") {
+        const auth = await authorize(request, env, "reports");
+        if (!auth.ok) return auth.response;
+        return getReports(request, env);
       }
 
       // Empresa
@@ -150,6 +169,40 @@ export default {
         return getSale(request, env, saleMatch[1]);
       }
 
+
+
+      // Agenda
+      if (path === "/api/agenda/bootstrap" && method === "GET") {
+        const auth = await authorize(request, env, "agenda");
+        if (!auth.ok) return auth.response;
+        return agendaBootstrap(request, env);
+      }
+
+      if (path === "/api/appointments" && method === "GET") {
+        const auth = await authorize(request, env, "agenda");
+        if (!auth.ok) return auth.response;
+        return listAppointments(request, env);
+      }
+
+      if (path === "/api/appointments" && method === "POST") {
+        const auth = await authorize(request, env, "agenda");
+        if (!auth.ok) return auth.response;
+        return createAppointment(request, env, auth.user);
+      }
+
+      const appointmentStatusMatch = path.match(/^\/api\/appointments\/(\d+)\/status$/);
+      if (appointmentStatusMatch && method === "PATCH") {
+        const auth = await authorize(request, env, "agenda");
+        if (!auth.ok) return auth.response;
+        return updateAppointmentStatus(request, env, appointmentStatusMatch[1]);
+      }
+
+      const appointmentMatch = path.match(/^\/api\/appointments\/(\d+)$/);
+      if (appointmentMatch && method === "PUT") {
+        const auth = await authorize(request, env, "agenda");
+        if (!auth.ok) return auth.response;
+        return updateAppointment(request, env, appointmentMatch[1]);
+      }
 
       // Caja
       if (path === "/api/cash/current" && method === "GET") {

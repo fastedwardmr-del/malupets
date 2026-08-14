@@ -308,10 +308,37 @@ export async function getCashSession(request, env, id) {
     ORDER BY cm.created_at ASC, cm.id ASC
   `).bind(session.id).all();
 
+  let salesSql = `
+    SELECT
+      s.id,
+      s.invoice_number,
+      s.total,
+      s.payment_method,
+      s.created_at,
+      c.full_name AS customer_name
+    FROM sales s
+    LEFT JOIN customers c ON c.id = s.customer_id
+    WHERE s.company_id = ?
+      AND datetime(s.created_at) >= datetime(?)
+  `;
+  const salesBindings = [COMPANY_ID, session.opened_at];
+
+  if (session.closed_at) {
+    salesSql += ` AND datetime(s.created_at) <= datetime(?)`;
+    salesBindings.push(session.closed_at);
+  }
+
+  salesSql += ` ORDER BY datetime(s.created_at) ASC, s.id ASC`;
+
+  const { results: sales } = await env.DB.prepare(salesSql)
+    .bind(...salesBindings)
+    .all();
+
   return json({
     ok: true,
     session,
     metrics,
-    movements: Array.isArray(movements) ? movements : []
+    movements: Array.isArray(movements) ? movements : [],
+    sales: Array.isArray(sales) ? sales : []
   });
 }
