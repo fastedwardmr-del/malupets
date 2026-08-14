@@ -14,6 +14,7 @@ import {
 import { listSales, getSale, createSale } from "./routes/sales.js";
 import { login, me, logout } from "./routes/auth.js";
 import { listUsers, createUser, updateUser } from "./routes/users.js";
+import { getCurrentCash, openCash, createCashMovement, closeCash, listCashHistory, getCashSession } from "./routes/cash.js";
 import { requireAuth } from "./middleware/auth.js";
 
 async function authorize(request, env, permission = null) {
@@ -147,6 +148,45 @@ export default {
         const auth = await authorize(request, env, "sales");
         if (!auth.ok) return auth.response;
         return getSale(request, env, saleMatch[1]);
+      }
+
+
+      // Caja
+      if (path === "/api/cash/current" && method === "GET") {
+        const auth = await authorize(request, env, "cash");
+        if (!auth.ok) return auth.response;
+        return getCurrentCash(request, env);
+      }
+
+      if (path === "/api/cash/open" && method === "POST") {
+        const auth = await authorize(request, env, "cash");
+        if (!auth.ok) return auth.response;
+        return openCash(request, env, auth.user);
+      }
+
+      if (path === "/api/cash/movements" && method === "POST") {
+        const auth = await authorize(request, env, "cash");
+        if (!auth.ok) return auth.response;
+        return createCashMovement(request, env, auth.user);
+      }
+
+      if (path === "/api/cash/close" && method === "POST") {
+        const auth = await authorize(request, env, "cash");
+        if (!auth.ok) return auth.response;
+        return closeCash(request, env, auth.user);
+      }
+
+      if (path === "/api/cash/history" && method === "GET") {
+        const auth = await authorize(request, env, "cash");
+        if (!auth.ok) return auth.response;
+        return listCashHistory(request, env);
+      }
+
+      const cashSessionMatch = path.match(/^\/api\/cash\/sessions\/(\d+)$/);
+      if (cashSessionMatch && method === "GET") {
+        const auth = await authorize(request, env, "cash");
+        if (!auth.ok) return auth.response;
+        return getCashSession(request, env, cashSessionMatch[1]);
       }
 
       // Usuarios / roles

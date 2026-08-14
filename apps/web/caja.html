@@ -1,1 +1,412 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Caja</title><link rel="stylesheet" href="css/styles.css"></head><body><div class="app"><aside class="sidebar"><div class="brand"><span class="malu">Malu</span><span class="dog-dot">🐶</span><span class="pets">Pets</span></div><nav class="nav"><a href="dashboard.html">Dashboard</a><a href="pos.html">POS - Facturación</a><a href="clientes.html">Clientes</a><a href="mascotas.html">Mascotas</a><a href="inventario.html">Inventario</a><a href="agenda.html">Agenda</a><a href="caja.html">Caja</a><a href="reportes.html">Reportes</a><a href="configuracion.html">Configuración</a></nav></aside><main class="main"><div class="topbar"><div class="title"><h1>Caja</h1><p>Módulo preparado para la siguiente fase.</p></div></div><section class="card"><span class="pill">Malupets v0.1.0</span><h2>Caja</h2><p>Esta pantalla queda lista en diseño para conectar lógica, tablas y endpoints.</p><div class="actions"><button class="btn btn-green">Finalizar venta</button><button class="btn btn-dark">Imprimir</button><button class="btn btn-soft">Abrir cajón</button></div></section></main></div><script src="js/config.js"></script><script src="js/app.js"></script></body></html>
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Caja | Malupets</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .cash-shell{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:18px;align-items:start}
+    .status-card{border-radius:22px;padding:20px;background:linear-gradient(135deg,#102a4f,#173c70);color:#fff;margin-bottom:16px}
+    .status-head{display:flex;justify-content:space-between;gap:12px;align-items:start}.status-head h2{margin:0}.status-head p{margin:5px 0 0;opacity:.8;font-size:13px}
+    .status-pill{padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.15);font-size:11px;font-weight:800}
+    .metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin:16px 0}
+    .metric{border:1px solid #e6edf5;border-radius:17px;padding:14px;background:#fff}.metric small{display:block;color:#64748b;margin-bottom:5px;font-size:11px}.metric strong{font-size:20px;color:#0f172a}
+    .metric.emphasis{background:#eef9ff;border-color:#cbeefe}.metric.emphasis strong{color:#0879b6}
+    .section-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px}.section-head h3{margin:0}.muted{font-size:12px;color:#64748b}
+    .movement-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}.btn-income{background:#eafaf3;color:#087f5b;border:0}.btn-expense{background:#fff1f2;color:#be123c;border:0}
+    .movement-table{width:100%;border-collapse:collapse}.movement-table th{text-align:left;font-size:10px;color:#64748b;text-transform:uppercase;padding:9px;border-bottom:1px solid #e8eef7}.movement-table td{padding:10px 9px;border-bottom:1px solid #edf2f7;font-size:12px}
+    .movement-amount.income{color:#087f5b;font-weight:800}.movement-amount.expense{color:#be123c;font-weight:800}
+    .payment-list{display:flex;flex-direction:column;gap:8px}.payment-row{display:flex;justify-content:space-between;align-items:center;background:#f8fafc;border-radius:12px;padding:10px 11px;font-size:12px}
+    .close-panel{border-top:1px solid #edf2f7;margin-top:16px;padding-top:16px}.close-preview{display:flex;justify-content:space-between;align-items:center;background:#f8fafc;border-radius:14px;padding:12px;margin:10px 0}.diff-ok{color:#087f5b}.diff-bad{color:#be123c}
+    .open-state{text-align:center;padding:30px 15px}.open-icon{font-size:48px;margin-bottom:10px}.open-form{max-width:440px;margin:18px auto 0;text-align:left}.field-label{display:block;font-size:12px;font-weight:800;color:#475569;margin:10px 0 6px}
+    .history-table{width:100%;border-collapse:collapse}.history-table th,.history-table td{text-align:left;padding:10px 8px;border-bottom:1px solid #edf2f7;font-size:12px}.history-table th{font-size:10px;color:#64748b;text-transform:uppercase}
+    .modal{position:fixed;inset:0;background:rgba(15,23,42,.42);display:none;align-items:center;justify-content:center;padding:18px;z-index:50}.modal.show{display:flex}
+    .modal-card{width:min(520px,100%);background:#fff;border-radius:22px;padding:21px}.modal-head{display:flex;justify-content:space-between;align-items:start}.modal-head h3{margin:0}
+    .actions{display:flex;justify-content:flex-end;gap:9px;margin-top:15px}.toast{position:fixed;right:22px;bottom:22px;background:#071124;color:#fff;padding:14px 18px;border-radius:15px;display:none;z-index:60}.toast.show{display:block}
+    .empty{padding:22px;text-align:center;color:#64748b;font-size:13px}
+    @media(max-width:1100px){.cash-shell{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:650px){.metrics{grid-template-columns:1fr}.movement-actions{grid-template-columns:1fr}.table-wrap{overflow:auto}.movement-table,.history-table{min-width:650px}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><span class="malu">Malu</span><span class="dog-dot">🐶</span><span class="pets">Pets</span></div>
+    <nav class="nav">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="pos.html">POS - Facturación</a>
+      <a href="ventas.html">Ventas / Facturas</a>
+      <a href="clientes.html">Clientes</a>
+      <a href="mascotas.html">Mascotas</a>
+      <a href="inventario.html">Inventario</a>
+      <a href="agenda.html">Agenda</a>
+      <a class="active" href="caja.html">Caja</a>
+      <a href="reportes.html">Reportes</a>
+      <a href="configuracion.html">Configuración</a>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="title">
+        <h1>Caja</h1>
+        <p>Apertura, movimientos, ventas en efectivo y cierre de turno.</p>
+      </div>
+      <button class="btn btn-soft" onclick="loadAll()">Actualizar</button>
+    </div>
+
+    <div id="closedView" class="card" style="display:none">
+      <div class="open-state">
+        <div class="open-icon">💵</div>
+        <h2>Caja cerrada</h2>
+        <p class="muted">Abre una caja para comenzar el turno y controlar el efectivo.</p>
+        <div class="open-form">
+          <label class="field-label" for="openingAmount">Saldo inicial</label>
+          <input id="openingAmount" class="input" type="number" min="0" step="100" value="0" placeholder="Ej. 100000">
+          <label class="field-label" for="openingNotes">Observación</label>
+          <textarea id="openingNotes" placeholder="Ej. Base inicial del turno"></textarea>
+          <button class="btn btn-green" style="width:100%;margin-top:12px" onclick="openCash()">Abrir caja</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="openView" style="display:none">
+      <div class="status-card">
+        <div class="status-head">
+          <div>
+            <h2>Caja abierta</h2>
+            <p id="sessionInfo">—</p>
+          </div>
+          <span class="status-pill">EN TURNO</span>
+        </div>
+      </div>
+
+      <div class="metrics">
+        <div class="metric"><small>Saldo inicial</small><strong id="openingText">$0</strong></div>
+        <div class="metric"><small>Ventas en efectivo</small><strong id="cashSalesText">$0</strong></div>
+        <div class="metric"><small>Ingresos / Egresos</small><strong id="manualText">$0</strong></div>
+        <div class="metric emphasis"><small>Efectivo esperado</small><strong id="expectedText">$0</strong></div>
+      </div>
+
+      <section class="cash-shell">
+        <div>
+          <div class="card">
+            <div class="section-head">
+              <div><h3>Movimientos manuales</h3><p class="muted">Registra entradas o salidas que no correspondan a ventas.</p></div>
+            </div>
+            <div class="movement-actions">
+              <button class="btn btn-income" onclick="openMovement('INCOME')">+ Registrar ingreso</button>
+              <button class="btn btn-expense" onclick="openMovement('EXPENSE')">− Registrar egreso</button>
+            </div>
+            <div class="table-wrap" style="margin-top:14px">
+              <table class="movement-table">
+                <thead><tr><th>Fecha</th><th>Tipo</th><th>Referencia</th><th>Usuario</th><th>Valor</th></tr></thead>
+                <tbody id="movementRows"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:18px">
+            <div class="section-head">
+              <div><h3>Historial de cierres</h3><p class="muted">Últimas cajas cerradas.</p></div>
+            </div>
+            <div class="table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Apertura</th><th>Cierre</th><th>Responsable</th><th>Esperado</th><th>Contado</th><th>Diferencia</th></tr></thead>
+                <tbody id="historyRows"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <aside>
+          <div class="card">
+            <div class="section-head">
+              <div><h3>Ventas del turno</h3><p class="muted">Resumen por medio de pago.</p></div>
+            </div>
+            <div id="paymentList" class="payment-list"></div>
+          </div>
+
+          <div class="card" style="margin-top:18px">
+            <div class="section-head">
+              <div><h3>Cerrar caja</h3><p class="muted">Cuenta únicamente el efectivo físico.</p></div>
+            </div>
+            <label class="field-label" for="countedAmount">Efectivo contado</label>
+            <input id="countedAmount" class="input" type="number" min="0" step="100" placeholder="Valor contado">
+            <div class="close-preview">
+              <span>Diferencia</span>
+              <strong id="differencePreview">$0</strong>
+            </div>
+            <label class="field-label" for="closingNotes">Observación de cierre</label>
+            <textarea id="closingNotes" placeholder="Opcional"></textarea>
+            <button class="btn btn-dark" style="width:100%;margin-top:11px" onclick="closeCash()">Cerrar turno</button>
+          </div>
+        </aside>
+      </section>
+    </div>
+
+    <div id="historyOnly" class="card" style="margin-top:18px">
+      <div class="section-head">
+        <div><h3>Historial de cajas</h3><p class="muted">Consulta de cierres anteriores.</p></div>
+      </div>
+      <div class="table-wrap">
+        <table class="history-table">
+          <thead><tr><th>Apertura</th><th>Cierre</th><th>Responsable</th><th>Esperado</th><th>Contado</th><th>Diferencia</th></tr></thead>
+          <tbody id="historyOnlyRows"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="movementModal" class="modal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div><h3 id="movementTitle">Movimiento</h3><p class="muted">Este movimiento afectará el efectivo esperado.</p></div>
+      <button class="btn btn-soft" onclick="closeMovement()">Cerrar</button>
+    </div>
+    <input id="movementType" type="hidden">
+    <label class="field-label" for="movementAmount">Valor</label>
+    <input id="movementAmount" class="input" type="number" min="1" step="100" placeholder="Ej. 20000">
+    <label class="field-label" for="movementReference">Referencia / concepto</label>
+    <input id="movementReference" class="input" placeholder="Ej. Compra de insumos">
+    <label class="field-label" for="movementNotes">Notas</label>
+    <textarea id="movementNotes" placeholder="Opcional"></textarea>
+    <div class="actions">
+      <button class="btn btn-soft" onclick="closeMovement()">Cancelar</button>
+      <button class="btn btn-blue" onclick="saveMovement()">Guardar movimiento</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
+<script>
+let currentCash = null;
+let cashHistory = [];
+
+function el(id){ return document.getElementById(id); }
+
+function money(value){
+  return new Intl.NumberFormat('es-CO',{
+    style:'currency',
+    currency:'COP',
+    maximumFractionDigits:0
+  }).format(Number(value || 0));
+}
+
+function escapeHtml(value){
+  return String(value ?? '').replace(/[&<>'"]/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'
+  })[c]);
+}
+
+function formatDate(value){
+  if(!value) return '—';
+  const text = String(value);
+  const normalized = text.includes('T') ? text : text.replace(' ','T') + 'Z';
+  const date = new Date(normalized);
+  return Number.isNaN(date.getTime()) ? text : date.toLocaleString('es-CO');
+}
+
+function showToast(message){
+  el('toast').textContent = message;
+  el('toast').classList.add('show');
+  setTimeout(()=>el('toast').classList.remove('show'),2600);
+}
+
+async function loadAll(){
+  try{
+    const [current, history] = await Promise.all([
+      Malu.api('/api/cash/current'),
+      Malu.api('/api/cash/history')
+    ]);
+
+    if(current?.ok === false) return showToast(current.error || 'No se pudo consultar la caja');
+
+    currentCash = current;
+    cashHistory = Array.isArray(history) ? history : [];
+    render();
+  }catch(error){
+    console.error(error);
+    showToast('No se pudo cargar la información de caja');
+  }
+}
+
+function render(){
+  const isOpen = Boolean(currentCash?.is_open);
+
+  el('closedView').style.display = isOpen ? 'none' : 'block';
+  el('openView').style.display = isOpen ? 'block' : 'none';
+  el('historyOnly').style.display = isOpen ? 'none' : 'block';
+
+  renderHistory('historyRows');
+  renderHistory('historyOnlyRows');
+
+  if(!isOpen) return;
+
+  const session = currentCash.session || {};
+  const metrics = currentCash.metrics || {};
+  const movements = Array.isArray(currentCash.movements) ? currentCash.movements : [];
+
+  el('sessionInfo').textContent =
+    `Abierta por ${session.opened_by_name || 'Usuario'} · ${formatDate(session.opened_at)}`;
+
+  el('openingText').textContent = money(metrics.opening_amount);
+  el('cashSalesText').textContent = money(metrics.cash_sales);
+
+  const manualNet = Number(metrics.income || 0) - Number(metrics.expense || 0);
+  el('manualText').textContent = money(manualNet);
+  el('expectedText').textContent = money(metrics.expected_amount);
+
+  el('movementRows').innerHTML = movements.map(movement => {
+    const income = movement.type === 'INCOME';
+    return `
+      <tr>
+        <td>${escapeHtml(formatDate(movement.created_at))}</td>
+        <td>${income ? 'Ingreso' : 'Egreso'}</td>
+        <td>${escapeHtml(movement.reference || movement.notes || '—')}</td>
+        <td>${escapeHtml(movement.user_name || '—')}</td>
+        <td class="movement-amount ${income ? 'income' : 'expense'}">${income ? '+' : '−'} ${money(movement.amount)}</td>
+      </tr>
+    `;
+  }).join('') || '<tr><td colspan="5"><div class="empty">Sin movimientos manuales.</div></td></tr>';
+
+  const breakdown = Array.isArray(metrics.payment_breakdown) ? metrics.payment_breakdown : [];
+  el('paymentList').innerHTML = breakdown.map(row => `
+    <div class="payment-row">
+      <span>${escapeHtml(row.payment_method || 'Sin definir')} <small class="muted">(${row.sales_count})</small></span>
+      <strong>${money(row.total)}</strong>
+    </div>
+  `).join('') || '<div class="empty">Aún no hay ventas durante este turno.</div>';
+
+  updateDifference();
+}
+
+function renderHistory(targetId){
+  const target = el(targetId);
+  if(!target) return;
+
+  target.innerHTML = cashHistory.map(row => {
+    const diff = Number(row.difference || 0);
+    return `
+      <tr>
+        <td>${escapeHtml(formatDate(row.opened_at))}</td>
+        <td>${escapeHtml(formatDate(row.closed_at))}</td>
+        <td>${escapeHtml(row.opened_by_name || '—')}</td>
+        <td>${money(row.expected_amount)}</td>
+        <td>${money(row.closing_counted)}</td>
+        <td class="${Math.abs(diff) < 0.01 ? 'diff-ok' : 'diff-bad'}">${money(diff)}</td>
+      </tr>
+    `;
+  }).join('') || '<tr><td colspan="6"><div class="empty">Todavía no hay cierres de caja.</div></td></tr>';
+}
+
+async function openCash(){
+  const opening = Number(el('openingAmount').value || 0);
+  if(opening < 0) return showToast('El saldo inicial no puede ser negativo');
+
+  const res = await Malu.api('/api/cash/open',{
+    method:'POST',
+    body:JSON.stringify({
+      opening_amount: opening,
+      notes: el('openingNotes').value.trim()
+    })
+  });
+
+  if(res?.ok){
+    el('openingNotes').value = '';
+    showToast('Caja abierta');
+    await loadAll();
+  }else{
+    showToast(res?.error || 'No se pudo abrir la caja');
+  }
+}
+
+function openMovement(type){
+  el('movementType').value = type;
+  el('movementTitle').textContent = type === 'INCOME' ? 'Registrar ingreso' : 'Registrar egreso';
+  el('movementAmount').value = '';
+  el('movementReference').value = '';
+  el('movementNotes').value = '';
+  el('movementModal').classList.add('show');
+  setTimeout(()=>el('movementAmount').focus(),60);
+}
+
+function closeMovement(){
+  el('movementModal').classList.remove('show');
+}
+
+async function saveMovement(){
+  const value = Number(el('movementAmount').value || 0);
+  if(value <= 0) return showToast('Ingresa un valor mayor que cero');
+
+  const res = await Malu.api('/api/cash/movements',{
+    method:'POST',
+    body:JSON.stringify({
+      type: el('movementType').value,
+      amount: value,
+      reference: el('movementReference').value.trim(),
+      notes: el('movementNotes').value.trim()
+    })
+  });
+
+  if(res?.ok){
+    closeMovement();
+    showToast(res.message || 'Movimiento registrado');
+    await loadAll();
+  }else{
+    showToast(res?.error || 'No se pudo registrar el movimiento');
+  }
+}
+
+function updateDifference(){
+  if(!currentCash?.is_open) return;
+  const counted = Number(el('countedAmount').value || 0);
+  const expected = Number(currentCash.metrics?.expected_amount || 0);
+  const difference = counted - expected;
+
+  el('differencePreview').textContent = money(difference);
+  el('differencePreview').className = Math.abs(difference) < 0.01 ? 'diff-ok' : 'diff-bad';
+}
+
+el('countedAmount').addEventListener('input', updateDifference);
+
+async function closeCash(){
+  if(!currentCash?.is_open) return showToast('No hay una caja abierta');
+
+  const raw = el('countedAmount').value;
+  if(raw === '') return showToast('Ingresa el efectivo contado');
+
+  const counted = Number(raw);
+  const expected = Number(currentCash.metrics?.expected_amount || 0);
+  const difference = counted - expected;
+
+  const message = `Esperado: ${money(expected)}\nContado: ${money(counted)}\nDiferencia: ${money(difference)}\n\n¿Deseas cerrar la caja?`;
+  if(!window.confirm(message)) return;
+
+  const res = await Malu.api('/api/cash/close',{
+    method:'POST',
+    body:JSON.stringify({
+      closing_counted: counted,
+      notes: el('closingNotes').value.trim()
+    })
+  });
+
+  if(res?.ok){
+    showToast(`Caja cerrada. Diferencia: ${money(res.difference)}`);
+    el('countedAmount').value = '';
+    el('closingNotes').value = '';
+    await loadAll();
+  }else{
+    showToast(res?.error || 'No se pudo cerrar la caja');
+  }
+}
+
+loadAll();
+</script>
+</body>
+</html>

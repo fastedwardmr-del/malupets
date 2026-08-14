@@ -1,0 +1,113 @@
+MALUPETS - MODULO CAJA
+======================
+
+ESTE PAQUETE FUE CONSTRUIDO SOBRE EL ZIP ACTUAL QUE YA ESTABA FUNCIONANDO.
+
+NO REEMPLAZA:
+- POS
+- Ventas / Facturas
+- Inventario
+- Productos / imagenes
+- Clientes
+- Mascotas
+- Login
+- Usuarios
+- Roles
+- Permisos
+- R2
+
+ARCHIVOS NUEVOS
+---------------
+apps/api/src/routes/cash.js
+database/migrations/04_cash.sql
+
+ARCHIVOS ACTUALIZADOS
+---------------------
+apps/api/src/index.js
+apps/web/caja.html
+
+FUNCIONES
+---------
+- Apertura de caja con saldo inicial.
+- Solo una caja abierta por empresa.
+- Usuario y fecha de apertura.
+- Ventas en efectivo calculadas automáticamente a partir de sales.
+- Resumen de ventas por medio de pago.
+- Ingresos manuales.
+- Egresos manuales.
+- Efectivo esperado:
+  saldo inicial + ventas efectivo + ingresos - egresos.
+- Conteo físico al cierre.
+- Diferencia automática.
+- Observación de apertura/cierre.
+- Historial de cierres.
+- Permiso "cash" validado en backend y frontend.
+
+IMPORTANTE SOBRE POS
+--------------------
+No se modificó sales.js ni pos.html.
+
+Caja toma automáticamente todas las ventas realizadas ENTRE la apertura
+y el cierre y clasifica como efectivo aquellas cuyo payment_method sea
+"Efectivo".
+
+Eso permite integrar Caja sin arriesgar el POS que ya está funcionando.
+
+INSTALACION
+-----------
+1. Descomprime este ZIP sobre:
+   C:\Proyectos\Malupets
+
+2. Reemplaza los archivos cuando Windows lo solicite.
+
+3. Desde:
+   C:\Proyectos\Malupets
+
+   ejecuta:
+
+   .\install-cash-module.bat
+
+El instalador:
+- crea cash_sessions;
+- crea cash_movements;
+- despliega el Worker;
+- despliega Pages.
+
+La migración usa CREATE TABLE IF NOT EXISTS, por lo que puede ejecutarse
+nuevamente sin borrar datos.
+
+PRUEBA
+------
+1. Entra como ADMIN o usuario con permiso Caja.
+2. Caja debe aparecer cerrada.
+3. Abre con, por ejemplo, $100.000.
+4. Comprueba que aparezca como Saldo inicial.
+5. Haz una venta en POS con medio "Efectivo".
+6. Regresa a Caja y pulsa Actualizar.
+7. La venta debe sumarse a "Ventas en efectivo" y "Efectivo esperado".
+8. Haz una venta con Tarjeta o Transferencia.
+9. Debe aparecer en "Ventas del turno", pero NO aumentar el efectivo esperado.
+10. Registra un ingreso manual.
+11. Registra un egreso manual.
+12. Introduce Efectivo contado.
+13. Comprueba la diferencia.
+14. Cierra caja.
+15. Debe aparecer en Historial de cierres.
+
+FORMULA
+-------
+Efectivo esperado =
+Saldo inicial
++ Ventas en efectivo
++ Ingresos manuales
+- Egresos manuales
+
+GIT
+---
+Cuando hayas probado todo:
+
+cd C:\Proyectos\Malupets
+git status
+git add .
+git commit -m "Agregar modulo de caja"
+git push
