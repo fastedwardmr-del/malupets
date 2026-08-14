@@ -1,0 +1,130 @@
+MALUPETS - REVISION INTEGRAL / CORRECCION DE AUTENTICACION
+==========================================================
+
+QUE REVISE
+----------
+Se revisó el ZIP actual completo del proyecto:
+- API Worker
+- rutas de clientes
+- mascotas
+- productos
+- ventas/facturas
+- imágenes R2
+- login
+- usuarios
+- sesiones
+- permisos
+- POS
+- inventario
+- ventas
+- clientes
+- mascotas
+- configuración
+- migraciones D1
+- wrangler.jsonc
+
+HALLAZGO PRINCIPAL
+------------------
+Tus datos NO fueron borrados.
+
+El problema que hace que después del login parezca que Productos,
+Ventas, Clientes o Mascotas están vacíos es la capa nueva de permisos.
+
+El frontend ya reconoce ADMIN como acceso total, pero el middleware del
+Worker dependía todavía del campo "permissions". Si ese campo quedó con
+un formato de una versión anterior o mal serializado, el Worker devolvía
+403 en /api/products, /api/sales, /api/customers, etc.
+
+Las pantallas interpretaban esas respuestas como si fueran listas vacías.
+
+CORRECCIONES DEL PAQUETE
+------------------------
+1. ADMIN tiene acceso total también en el BACKEND.
+2. Se aceptan permisos tanto como JSON válido como formatos heredados.
+3. Login normaliza el rol a mayúsculas.
+4. PBKDF2 queda en 100000 iteraciones en auth.js Y users.js.
+   Antes users.js seguía en 120000 y crear/cambiar contraseñas iba a fallar.
+5. app.js devuelve errores HTTP correctamente en lugar de disfrazarlos
+   como datasets vacíos.
+6. Compatible con URLs limpias (/pos) y archivos (/pos.html).
+7. No se toca D1.
+8. No se toca R2.
+9. No se reemplazan POS, inventario, ventas, clientes ni mascotas.
+   Se preservan las versiones funcionales que ya tienes.
+
+ARCHIVOS QUE ESTE ZIP REEMPLAZA
+-------------------------------
+apps/api/src/middleware/auth.js
+apps/api/src/routes/auth.js
+apps/api/src/routes/users.js
+apps/web/js/app.js
+
+Nada más.
+
+COMO INSTALAR
+-------------
+1. Descomprime este ZIP sobre:
+   C:\Proyectos\Malupets
+
+2. Elige:
+   "Reemplazar los archivos en el destino"
+
+3. NO ejecutes install-auth-roles.bat.
+   La base D1 ya fue adaptada manualmente.
+
+4. Puedes ejecutar desde la raíz:
+   deploy-auth-fix-safe.bat
+
+   Ese script SOLO despliega API y Pages.
+   NO toca D1.
+
+O manualmente:
+
+Backend:
+cd C:\Proyectos\Malupets\apps\api
+npx wrangler deploy
+
+Frontend:
+cd C:\Proyectos\Malupets\apps\web
+npx wrangler pages deploy . --project-name=malupets
+
+PRUEBA RECOMENDADA
+------------------
+Después del deploy:
+
+1. Ctrl+F5
+2. Login como administrador.
+3. Dashboard:
+   - clientes debe mostrar cantidad
+   - mascotas debe mostrar cantidad
+4. Inventario:
+   - deben aparecer productos existentes e imágenes
+5. POS:
+   - deben aparecer productos y clientes
+6. Ventas / Facturas:
+   - deben aparecer ventas existentes
+   - Ver detalle debe funcionar
+7. Clientes:
+   - listado y edición
+8. Mascotas:
+   - listado y edición
+9. Configuración:
+   - debe mostrar administrador
+   - crear un usuario de prueba debe funcionar
+
+IMPORTANTE
+----------
+No puedo garantizar desde fuera el estado de los datos remotos de Cloudflare
+sin ejecutar contra tu cuenta, pero el código entregado fue revisado para
+mantener compatibles las tablas y funcionalidades que aparecen en tu ZIP.
+
+Se validó sintácticamente todo el JavaScript del proyecto recibido y no
+se encontraron errores de sintaxis en los archivos actuales.
+
+NO EJECUTAR
+-----------
+Por ahora NO vuelvas a ejecutar:
+install-auth-roles.bat
+03_auth_roles.sql
+
+Ya hicimos manualmente la adaptación de la tabla users de tu D1 remoto.

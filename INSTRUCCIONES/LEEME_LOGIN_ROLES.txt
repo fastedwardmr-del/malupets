@@ -1,0 +1,163 @@
+MALUPETS - LOGIN + USUARIOS + ROLES/PERMISOS
+=================================================
+
+QUE AGREGA ESTE PAQUETE
+-----------------------
+1. Login real contra Cloudflare D1.
+2. Contraseñas almacenadas con PBKDF2-SHA256 + salt.
+3. Sesiones de 12 horas.
+4. Bearer token automático en las llamadas API.
+5. Protección de endpoints del Worker.
+6. Roles:
+   - ADMIN
+   - VENTAS
+   - SPA
+   - CONSULTA
+7. Permisos configurables por módulo.
+8. Ocultamiento automático de opciones del menú según permisos.
+9. Protección para impedir abrir directamente páginas sin permiso.
+10. Administración de usuarios desde Configuración.
+11. Cierre de sesión.
+12. Usuario administrador inicial.
+
+USUARIO INICIAL
+---------------
+Correo:
+admin@malupets.com
+
+Contraseña:
+Malupets2026!
+
+IMPORTANTE:
+Entra a Configuración y cambia esta contraseña después de verificar
+que todo funciona.
+
+ARCHIVOS NUEVOS PRINCIPALES
+---------------------------
+apps/api/src/middleware/auth.js
+apps/api/src/routes/auth.js
+apps/api/src/routes/users.js
+database/migrations/03_auth_roles.sql
+install-auth-roles.bat
+apps/web/ventas.html
+
+ARCHIVOS ACTUALIZADOS
+---------------------
+apps/api/src/index.js
+apps/api/src/routes/sales.js
+apps/web/js/app.js
+apps/web/login.html
+apps/web/index.html
+apps/web/configuracion.html
+apps/web/pos.html
+apps/web/agenda.html
+apps/web/caja.html
+apps/web/reportes.html
+
+INSTALACION FACIL
+-----------------
+1. Copia el contenido del ZIP sobre:
+   C:\Proyectos\Malupets
+
+2. Acepta reemplazar archivos.
+
+3. En la raiz C:\Proyectos\Malupets haz doble clic en:
+   install-auth-roles.bat
+
+Ese archivo:
+- crea las tablas users y sessions;
+- crea el administrador inicial;
+- despliega la API;
+- despliega Pages.
+
+INSTALACION MANUAL
+------------------
+Desde:
+C:\Proyectos\Malupets\apps\api
+
+Ejecuta:
+
+npx wrangler d1 execute malupets-db --remote --file=../../database/migrations/03_auth_roles.sql
+
+Luego:
+
+npx wrangler deploy
+
+Luego:
+
+cd ..\web
+
+Y:
+
+npx wrangler pages deploy . --project-name=malupets
+
+PRUEBA
+------
+1. Abre:
+   https://malupets.edylaser3d.com
+
+2. Debe enviarte al login.
+
+3. Ingresa:
+   admin@malupets.com
+   Malupets2026!
+
+4. Verifica que como ADMIN veas todos los módulos.
+
+5. Entra a Configuración.
+
+6. Crea un usuario de prueba con rol VENTAS.
+
+7. Cierra sesión.
+
+8. Entra con el usuario VENTAS.
+
+9. Deben ocultarse los módulos que no tenga autorizados.
+
+ROLES INICIALES
+---------------
+ADMIN:
+Acceso total.
+
+VENTAS:
+Dashboard
+POS
+Ventas / Facturas
+Clientes
+Mascotas
+Inventario
+Caja
+
+SPA:
+Dashboard
+Agenda
+Clientes
+Mascotas
+
+CONSULTA:
+Dashboard
+Clientes
+Mascotas
+
+Los permisos pueden personalizarse individualmente desde Configuración.
+
+SEGURIDAD
+---------
+- No se guarda la contraseña en texto plano.
+- El Worker valida permisos, no solo el frontend.
+- Ocultar un botón NO es la seguridad principal: la API también bloquea
+  operaciones no autorizadas.
+- La sesión expira automáticamente.
+- Las imágenes de productos siguen siendo públicas únicamente para poder
+  mostrarlas mediante etiquetas <img>; la creación/edición/subida de imágenes
+  sí está protegida.
+
+GIT
+---
+Cuando compruebes que funciona:
+
+cd C:\Proyectos\Malupets
+git status
+git add .
+git commit -m "Agregar login usuarios roles y permisos"
+git push
